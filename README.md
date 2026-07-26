@@ -31,9 +31,9 @@ new transport functionality.
 
 ### PyPI (recommended)
 
-Prebuilt wheels are published for Linux (manylinux x86_64), macOS (arm64), and
-Windows (amd64) on Python 3.8, 3.10, and 3.12. No C++ toolchain or Wirestead
-core checkout is required.
+Prebuilt wheels are published for Linux (manylinux x86_64 and aarch64), macOS
+(arm64), and Windows (amd64) on Python 3.8, 3.10, and 3.12. No C++ toolchain
+or Wirestead core checkout is required.
 
 ```bash
 pip install wirestead

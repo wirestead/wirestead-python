@@ -55,13 +55,16 @@ installable with `pip install ./<wheel-file>.whl`. Artifact grouping follows the
 same platform-oriented style as the Wirestead core release workflow:
 
 - `manylinux_2_28-x86_64`
+- `manylinux_2_28-aarch64`
 - `macos-15-arm64`
 - `windows-amd64`
 
-The Linux wheel is built with `cibuildwheel` against the `manylinux_2_28` image
-so it carries a `manylinux` platform tag PyPI will accept (a plain
-`linux_x86_64` wheel built on a stock Ubuntu runner is rejected by PyPI
-uploads). Boost is supplied through a scratch `vcpkg` install inside the
+The Linux wheels are built with `cibuildwheel` against the `manylinux_2_28`
+image so they carry a `manylinux` platform tag PyPI will accept (a plain
+`linux_x86_64`/`linux_aarch64` wheel built on a stock Ubuntu runner is
+rejected by PyPI uploads). The aarch64 leg runs on a native `ubuntu-24.04-arm`
+hosted runner rather than x86_64-with-QEMU, so build times stay comparable to
+the x86_64 leg. Boost is supplied through a scratch `vcpkg` install inside the
 manylinux container, the same dependency source already used for macOS and
 Windows wheels.
 
