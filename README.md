@@ -29,6 +29,20 @@ new transport functionality.
 
 ## Installation
 
+### PyPI (recommended)
+
+Prebuilt wheels are published for Linux (manylinux x86_64), macOS (arm64), and
+Windows (amd64) on Python 3.8, 3.10, and 3.12. No C++ toolchain or Wirestead
+core checkout is required.
+
+```bash
+pip install wirestead
+```
+
+The remaining installation methods below build the extension locally and are
+meant for contributors, other Python versions/platforms, or consuming a
+custom core build.
+
 ### Development mode with local core source
 
 ```bash
