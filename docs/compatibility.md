@@ -15,6 +15,7 @@ The current release line is validated against:
 
 | Wirestead Python | Validated Wirestead core refs |
 |---|---|
+| 0.9.1 | v0.9.1 |
 | 0.9.0 | v0.9.0 |
 
 Additional patch versions in the same minor line may also work, but CI
