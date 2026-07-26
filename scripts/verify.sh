@@ -91,8 +91,6 @@ create_venv() {
 run_python_smoke() {
   local python="$1"
   "$python" -c "import wirestead; print(wirestead.__version__)"
-  "$python" -c "import unilink; print(unilink.__version__)"
-  "$python" -c "import unilink_py"
 }
 
 run_tests() {

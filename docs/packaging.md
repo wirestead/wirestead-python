@@ -14,6 +14,3 @@ ensure that:
 at import time. When packaging, make sure that any required shared libraries
 (like `.dll` or `.so`) are placed in the application bundle directory so they
 can be loaded by the extension.
-
-`src/unilink` and `src/unilink_py.py` are compatibility shims that re-export the
-canonical `wirestead` package for existing source imports.

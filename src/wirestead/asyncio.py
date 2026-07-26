@@ -1,10 +1,7 @@
 import asyncio
 from typing import List, Union
 
-try:
-    from . import _core
-except ImportError:
-    import unilink_py as _core
+from . import _core
 
 
 def _get_loop():

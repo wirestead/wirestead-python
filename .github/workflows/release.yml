@@ -15,6 +15,19 @@ on:
         type: boolean
         required: false
         default: true
+      publish_pypi:
+        description: "Publish sdist/wheels to PyPI"
+        type: boolean
+        required: false
+        default: false
+      pypi_target:
+        description: "PyPI index to publish to"
+        type: choice
+        options:
+          - testpypi
+          - pypi
+        required: false
+        default: testpypi
 
 permissions:
   contents: write
@@ -54,15 +67,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
-            os_label: ubuntu-24.04-amd64
-            python-version: "3.8"
-          - os: ubuntu-24.04
-            os_label: ubuntu-24.04-amd64
-            python-version: "3.10"
-          - os: ubuntu-24.04
-            os_label: ubuntu-24.04-amd64
-            python-version: "3.12"
           - os: macos-15
             os_label: macos-15-arm64
             python-version: "3.8"
@@ -108,12 +112,6 @@ jobs:
           python -m pip install -U pip
           python -m pip install "pytest>=8,<9" pytest-asyncio scikit-build-core "pybind11>=2.11,<3"
 
-      - name: Install system deps on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build libboost-system-dev
-
       - name: Install system deps on macOS
         if: runner.os == 'macOS'
         run: |
@@ -153,12 +151,6 @@ jobs:
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install --classic boost-asio boost-system --triplet x64-windows-static-md
 
-      - name: Build wheel on Linux
-        if: runner.os == 'Linux'
-        run: |
-          python -m pip wheel . --no-build-isolation -w dist \
-            --config-settings=cmake.define.WIRESTEAD_CORE_SOURCE_DIR=${{ github.workspace }}/wirestead-core
-
       - name: Build wheel on macOS
         if: runner.os == 'macOS'
         run: |
@@ -183,8 +175,6 @@ jobs:
         run: |
           python -m pip install dist/*.whl
           python -c "import wirestead; print(wirestead.__version__)"
-          python -c "import unilink; print(unilink.__version__)"
-          python -c "import unilink_py"
           PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p pytest_asyncio.plugin -m "not serial and not integration"
 
       - name: Install wheel and run smoke tests on Windows
@@ -203,8 +193,6 @@ jobs:
             python bindings/python/diagnose_windows_import.py
             exit 1
           }
-          python -X faulthandler -c "import unilink; print(unilink.__version__)"
-          python -X faulthandler -c "import unilink_py"
           $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
           python -m pytest -q -p pytest_asyncio.plugin -m "not serial and not integration"
 
@@ -214,10 +202,51 @@ jobs:
           name: release-wheel-${{ matrix.os_label }}-py${{ matrix.python-version }}
           path: dist/*.whl
 
+  wheels-linux:
+    name: Wheel (manylinux_2_28, x86_64)
+    runs-on: ubuntu-24.04
+
+    env:
+      CIBW_BUILD: "cp38-manylinux_x86_64 cp310-manylinux_x86_64 cp312-manylinux_x86_64"
+      CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+      CIBW_ENVIRONMENT_LINUX: >-
+        SKBUILD_CMAKE_DEFINE="WIRESTEAD_CORE_SOURCE_DIR=/host${{ github.workspace }}/wirestead-core;VCPKG_MANIFEST_MODE=OFF;CMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake;VCPKG_TARGET_TRIPLET=x64-linux"
+      CIBW_BEFORE_ALL_LINUX: >-
+        dnf install -y ninja-build zip unzip perl-IPC-Cmd &&
+        git clone --depth 1 https://github.com/microsoft/vcpkg.git /vcpkg &&
+        /vcpkg/bootstrap-vcpkg.sh &&
+        /vcpkg/vcpkg install --classic boost-asio boost-system --triplet x64-linux
+      CIBW_TEST_REQUIRES: "pytest>=8,<9 pytest-asyncio>=1.4.0"
+      CIBW_TEST_COMMAND: >-
+        python -c "import wirestead; print(wirestead.__version__)" &&
+        cd {project} && PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p pytest_asyncio.plugin -m "not serial and not integration"
+
+    steps:
+      - name: Checkout Wirestead Python
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+
+      - name: Checkout Wirestead core
+        uses: actions/checkout@v7
+        with:
+          repository: wirestead/wirestead
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          path: wirestead-core
+
+      - name: Build manylinux wheels
+        uses: pypa/cibuildwheel@v4
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-wheel-manylinux_2_28-x86_64
+          path: wheelhouse/*.whl
+
   publish:
     name: Publish GitHub release assets
     runs-on: ubuntu-24.04
-    needs: [source-distribution, wheels]
+    needs: [source-distribution, wheels, wheels-linux]
     if: github.event_name == 'push' || inputs.upload == true || inputs.upload == 'true'
 
     steps:
@@ -261,3 +290,39 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-24.04
+    needs: [source-distribution, wheels, wheels-linux]
+    if: github.event_name == 'workflow_dispatch' && (inputs.publish_pypi == true || inputs.publish_pypi == 'true')
+    environment:
+      name: ${{ inputs.pypi_target == 'pypi' && 'pypi' || 'testpypi' }}
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: List distributions
+        run: |
+          find dist -maxdepth 1 -type f \( -name "*.whl" -o -name "*.tar.gz" \) -print | sort
+
+      - name: Publish to TestPyPI
+        if: inputs.pypi_target != 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist
+          skip-existing: true
+
+      - name: Publish to PyPI
+        if: inputs.pypi_target == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

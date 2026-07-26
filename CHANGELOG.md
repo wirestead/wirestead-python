@@ -2,6 +2,13 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Removed
+
+- Removed the `unilink` and `unilink_py` source compatibility shims. Import
+  `wirestead` instead.
+
 ## v0.9.0
 
 Release aligned with Wirestead C++ core 0.9.0.

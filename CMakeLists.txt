@@ -44,4 +44,3 @@ install(
   LIBRARY DESTINATION wirestead
   RUNTIME DESTINATION wirestead
 )
-install(FILES src/unilink_py.py DESTINATION .)

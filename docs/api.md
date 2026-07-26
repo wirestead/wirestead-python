@@ -10,12 +10,4 @@ client = wirestead.TcpClient("127.0.0.1", 9000)
 server = wirestead.TcpServer(9000)
 ```
 
-The compiled extension is installed as `wirestead._core`. Existing users can
-temporarily import the compatibility shim:
-
-```python
-import unilink
-import unilink_py
-```
-
-The shim re-exports the same public symbols from `wirestead`.
+The compiled extension is installed as `wirestead._core`.

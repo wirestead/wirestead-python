@@ -71,18 +71,3 @@ def test_async_uds_api_surface():
 
     assert AsyncUdsClient is not None
     assert AsyncUdsServer is not None
-
-
-def test_legacy_package_reexports_core_surface():
-    import unilink
-    import wirestead
-
-    assert unilink.TcpClient is wirestead.TcpClient
-    assert unilink.UdsClient is wirestead.UdsClient
-
-
-def test_legacy_asyncio_package_reexports_async_surface():
-    from unilink.asyncio import AsyncTcpClient
-    from wirestead.asyncio import AsyncTcpClient as WiresteadAsyncTcpClient
-
-    assert AsyncTcpClient is WiresteadAsyncTcpClient
