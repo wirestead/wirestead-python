@@ -40,7 +40,7 @@ Core = "https://github.com/wirestead/wirestead"
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 build-dir = "build/{wheel_tag}"
-wheel.packages = ["src/wirestead", "src/unilink"]
+wheel.packages = ["src/wirestead"]
 
 [tool.scikit-build.cmake]
 version = ">=3.21"

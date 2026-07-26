@@ -139,10 +139,7 @@ def main() -> int:
         print(f"  ... ({len(sys.path) - 12} more)")
 
     extension_candidates = sorted(package_path.glob("wirestead/_core*.pyd"))
-    extension_candidates.extend(sorted(package_path.glob("unilink/_core*.pyd")))
-    extension_candidates.extend(sorted(package_path.glob("unilink_py*.pyd")))
     runtime_candidates = sorted(package_path.glob("wirestead*.dll"))
-    runtime_candidates.extend(sorted(package_path.glob("unilink*.dll")))
 
     # Binary load checks run BEFORE find_spec so that ctypes.WinDLL errors
     # (which name the missing DLL) are visible even when the Python import
@@ -159,7 +156,7 @@ def main() -> int:
         _load_binary(candidate)
 
     _print_section("Import Specs")
-    for _spec_name in ("wirestead", "wirestead._core", "unilink", "unilink_py"):
+    for _spec_name in ("wirestead", "wirestead._core"):
         try:
             _spec = importlib.util.find_spec(_spec_name)
             print(f"spec({_spec_name}): {_spec}")

@@ -12,7 +12,6 @@ lives in the main Wirestead repository.
 
 - Python package: `wirestead`
 - Compiled extension: `wirestead._core`
-- Backward compatibility packages: `unilink`, `unilink_py`
 
 ## Documentation
 
@@ -75,8 +74,6 @@ python -m pip install . \
 
 ```bash
 python -c "import wirestead; print(wirestead.__version__)"
-python -c "import unilink; print(unilink.__version__)"
-python -c "import unilink_py"
 ```
 
 ## Tests
@@ -115,6 +112,3 @@ CI fixes do not require a matching core patch release.
 
 The Python package is currently experimental until the C++ public API reaches a
 stable release line.
-
-Existing source that imports `unilink` or `unilink_py` remains supported as a
-compatibility path in the 0.9.x line, but new code should import `wirestead`.

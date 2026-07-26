@@ -46,8 +46,6 @@ python -m pip install . \
 
 ```bash
 python -c "import wirestead; print(wirestead.__version__)"
-python -c "import unilink; print(unilink.__version__)"
-python -c "import unilink_py"
 ```
 
 ## Local verification
