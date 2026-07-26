@@ -2,7 +2,16 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## v0.9.1
+
+Release aligned with Wirestead C++ core 0.9.1.
+
+### Added
+
+- Published `wirestead` to PyPI. Prebuilt wheels are available for Linux
+  (manylinux x86_64 and aarch64), macOS (arm64), and Windows (amd64) on
+  Python 3.8, 3.10, and 3.12; `pip install wirestead` no longer requires a
+  local C++ toolchain or Wirestead core checkout.
 
 ### Removed
 

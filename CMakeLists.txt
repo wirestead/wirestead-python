@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
   wirestead_python
-  VERSION 0.9.0
+  VERSION 0.9.1
   DESCRIPTION "Python bindings for the Wirestead C++ communication library"
   HOMEPAGE_URL "https://github.com/wirestead/wirestead-python"
   LANGUAGES CXX
