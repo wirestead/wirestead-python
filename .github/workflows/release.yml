@@ -203,19 +203,33 @@ jobs:
           path: dist/*.whl
 
   wheels-linux:
-    name: Wheel (manylinux_2_28, x86_64)
-    runs-on: ubuntu-24.04
+    name: Wheel (manylinux_2_28, ${{ matrix.arch_label }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch_label: x86_64
+            cibw_archs: x86_64
+            vcpkg_triplet: x64-linux
+          - runner: ubuntu-24.04-arm
+            arch_label: aarch64
+            cibw_archs: aarch64
+            vcpkg_triplet: arm64-linux
 
     env:
-      CIBW_BUILD: "cp38-manylinux_x86_64 cp310-manylinux_x86_64 cp312-manylinux_x86_64"
+      CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs }}
+      CIBW_BUILD: "cp38-manylinux_${{ matrix.cibw_archs }} cp310-manylinux_${{ matrix.cibw_archs }} cp312-manylinux_${{ matrix.cibw_archs }}"
       CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+      CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
       CIBW_ENVIRONMENT_LINUX: >-
-        SKBUILD_CMAKE_DEFINE="WIRESTEAD_CORE_SOURCE_DIR=/host${{ github.workspace }}/wirestead-core;VCPKG_MANIFEST_MODE=OFF;CMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake;VCPKG_TARGET_TRIPLET=x64-linux"
+        SKBUILD_CMAKE_DEFINE="WIRESTEAD_CORE_SOURCE_DIR=/host${{ github.workspace }}/wirestead-core;VCPKG_MANIFEST_MODE=OFF;CMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake;VCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }}"
       CIBW_BEFORE_ALL_LINUX: >-
         dnf install -y ninja-build zip unzip perl-IPC-Cmd &&
         git clone --depth 1 https://github.com/microsoft/vcpkg.git /vcpkg &&
         /vcpkg/bootstrap-vcpkg.sh &&
-        /vcpkg/vcpkg install --classic boost-asio boost-system --triplet x64-linux
+        /vcpkg/vcpkg install --classic boost-asio boost-system --triplet ${{ matrix.vcpkg_triplet }}
       CIBW_TEST_REQUIRES: "pytest>=8,<9 pytest-asyncio"
       CIBW_TEST_COMMAND: >-
         python -c "import wirestead; print(wirestead.__version__)" &&
@@ -240,7 +254,7 @@ jobs:
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: release-wheel-manylinux_2_28-x86_64
+          name: release-wheel-manylinux_2_28-${{ matrix.arch_label }}
           path: wheelhouse/*.whl
 
   publish:
