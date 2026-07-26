@@ -235,7 +235,7 @@ jobs:
           path: wirestead-core
 
       - name: Build manylinux wheels
-        uses: pypa/cibuildwheel@v4.1
+        uses: pypa/cibuildwheel@v3.4
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
