@@ -89,6 +89,9 @@ has proven itself.
 2. One-time setup on GitHub: create the `testpypi` and `pypi` environments
    under repo Settings → Environments so they match the names referenced by
    the `publish-pypi` job and registered on PyPI.
+
+   Both one-time steps above are already done for the `wirestead` project —
+   only steps 3-4 are needed for each new release.
 3. Run the Release workflow manually (`workflow_dispatch`) with:
    - `tag_name` set to the release tag to publish.
    - `publish_pypi` set to `true`.
@@ -96,3 +99,23 @@ has proven itself.
      `pip install --index-url https://test.pypi.org/simple/ wirestead`.
 4. Re-run with `pypi_target` set to `pypi` once the TestPyPI install has been
    verified.
+
+### Known pitfalls
+
+These surfaced the first time the workflow actually ran end to end and are
+fixed in the current `release.yml`, but are worth knowing if the manylinux
+job or dependency pins change again:
+
+- `pypa/cibuildwheel` doesn't publish a bare major-version tag (`v4`) the way
+  `actions/checkout` does — pin to an actual tag (`v4.1`, `v4.1.1`, etc.).
+- `cibuildwheel` 4.x dropped support for Python < 3.9. Since the
+  macOS/Windows wheel matrix still targets 3.8, the manylinux job needs a 3.x
+  `cibuildwheel` release to keep the same Python coverage across platforms.
+- `CIBW_TEST_REQUIRES` must not copy `pyproject.toml`'s
+  `pytest-asyncio>=1.4.0` test-extra pin as-is — that floor has no
+  distribution for Python 3.8. Leave it unpinned there, matching the
+  macOS/Windows jobs.
+- PyPI validates `classifiers` against the trove-classifiers list at upload
+  time, not at build time — an invalid entry (e.g. a C++-standard
+  sub-classifier that doesn't exist, unlike Python's) only fails on the
+  actual `twine upload`, after wheels have already built successfully.
