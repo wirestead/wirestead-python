@@ -289,7 +289,7 @@ jobs:
 
           Release aligned with the matching Wirestead C++ core release line.
 
-          See `CHANGELOG.md` for details.
+          See \`CHANGELOG.md\` for details.
           EOF
 
       - name: Upload Release Assets
