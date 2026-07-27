@@ -120,8 +120,8 @@ if(WIRESTEAD_CORE_SOURCE_DIR)
 
   if(WIN32)
     target_compile_definitions(
-      ${WIRESTEAD_PYTHON_CORE_TARGET}
-      PUBLIC WIRESTEAD_STATIC_DEFINE BOOST_ASIO_DISABLE_IOCP
+      ${WIRESTEAD_PYTHON_CORE_TARGET} PUBLIC WIRESTEAD_STATIC_DEFINE
+                                             BOOST_ASIO_DISABLE_IOCP
     )
   endif()
 else()
