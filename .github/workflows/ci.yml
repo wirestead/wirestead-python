@@ -138,11 +138,27 @@ jobs:
           }
 
       - name: Run tests
+        if: runner.os != 'Windows'
         env:
           WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS: "1"
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
           python -m pytest -q -p pytest_asyncio.plugin -m "not serial"
+
+      - name: Run tests on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS: "1"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          $site = python -c "import site; print(site.getsitepackages()[0])"
+          $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
+          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $env:WIRESTEAD_INSTALL_PATH = $site
+          $env:WIRESTEAD_PACKAGE_PATH = $site
+
+          python -X faulthandler -m pytest -q -p pytest_asyncio.plugin -m "not serial"
 
   vcpkg-core:
     name: vcpkg core
