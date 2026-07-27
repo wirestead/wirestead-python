@@ -111,9 +111,10 @@ job or dependency pins change again:
 
 - `pypa/cibuildwheel` doesn't publish a bare major-version tag (`v4`) the way
   `actions/checkout` does — pin to an actual tag (`v4.1`, `v4.1.1`, etc.).
-- `cibuildwheel` 4.x dropped support for Python < 3.9. Since the
-  macOS/Windows wheel matrix still targets 3.8, the manylinux job needs a 3.x
-  `cibuildwheel` release to keep the same Python coverage across platforms.
+- Keep the Python version matrix aligned across Linux, macOS, Windows,
+  `requires-python`, README support tables, and PyPI classifiers. Before
+  expanding the matrix again, confirm `actions/setup-python`, pybind11,
+  scikit-build-core, and cibuildwheel support the target CPython ABI tags.
 - `CIBW_TEST_REQUIRES` must not copy `pyproject.toml`'s
   `pytest-asyncio>=1.4.0` test-extra pin as-is — that floor has no
   distribution for Python 3.8. Leave it unpinned there, matching the

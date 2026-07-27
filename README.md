@@ -31,9 +31,9 @@ new transport functionality.
 
 ### PyPI (recommended)
 
-Prebuilt wheels are published for Linux (manylinux x86_64 and aarch64), macOS
-(arm64), and Windows (amd64) on Python 3.8, 3.10, and 3.12. No C++ toolchain
-or Wirestead core checkout is required.
+Prebuilt wheels are published for Python 3.8 through 3.13 on Linux
+(`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
+No C++ toolchain or Wirestead core checkout is required.
 
 ```bash
 pip install wirestead
@@ -103,6 +103,16 @@ explicitly requested:
 WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 python -m pytest -q -m "integration"
 ```
 
+Release wheels are also validated as installed artifacts from a fresh virtual
+environment:
+
+```bash
+python scripts/run_wheel_consumer_smoke.py \
+  --wheel-dir dist \
+  --project-root . \
+  --expected-version 0.9.1
+```
+
 For local validation across supported core consumption paths, use:
 
 ```bash
@@ -126,3 +136,23 @@ CI fixes do not require a matching core patch release.
 
 The Python package is currently experimental until the C++ public API reaches a
 stable release line.
+
+## Support Matrix
+
+| Item | Status |
+|---|---|
+| Python wheels | CPython 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13 |
+| Linux wheels | `manylinux_2_28` x86_64 and aarch64 |
+| Windows wheels | amd64 |
+| macOS wheels | arm64 |
+| Install command | `pip install wirestead` |
+| Source build | Contributor/custom-core path only |
+| TCP | Supported and wheel-smoke tested on Linux, Windows, and macOS |
+| UDP | Supported and wheel-smoke tested on Linux, Windows, and macOS |
+| Serial | API surface is shipped; hardware loopback is not part of wheel smoke |
+| UDS | Linux/macOS loopback tested; Windows API is exposed, loopback validation pending |
+| Core compatibility | `wirestead` Python 0.9.x targets Wirestead C++ core 0.9.x |
+
+Users migrating from UniLink should switch package and import names to
+`wirestead`. See the core migration guide:
+https://github.com/wirestead/wirestead/blob/main/docs/migration-from-unilink.md
