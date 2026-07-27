@@ -47,8 +47,9 @@ scripts/verify.sh \
 
 ## Release Assets
 
-The Release workflow always publishes GitHub release assets (source
-distribution and wheels).
+The Release workflow always builds the source distribution and wheels as
+GitHub Actions artifacts. It publishes them to a GitHub Release only for a
+`v*` tag push or when a manual run enables `upload`.
 
 Wheel files keep their standard Python wheel filenames so they remain directly
 installable with `pip install ./<wheel-file>.whl`. Artifact grouping follows the
@@ -70,9 +71,24 @@ Windows wheels.
 
 The source distribution is built with `python -m build --sdist`.
 
-For an existing tag, run the Release workflow manually with `tag_name` set to
-that tag and `upload` enabled. Future `v*` tag pushes trigger the same workflow
-automatically.
+To validate the current release workflow without publishing, run:
+
+```bash
+gh workflow run release.yml \
+  -f source_ref=main \
+  -f tag_name=v0.9.1 \
+  -f upload=false \
+  -f publish_pypi=false
+```
+
+`source_ref` selects the Git ref checked out from both `wirestead-python` and
+the core `wirestead` repository. The ref must exist in both repositories.
+`tag_name` supplies the expected package version for consumer smoke tests, so
+it must match the version declared by the selected Python source ref.
+
+For an existing tag, run the Release workflow manually with both `source_ref`
+and `tag_name` set to that tag and `upload` enabled. Future `v*` tag pushes
+trigger the same workflow automatically.
 
 ## Publishing to PyPI
 
@@ -96,6 +112,7 @@ has proven itself.
    Both one-time steps above are already done for the `wirestead` project —
    only steps 3-4 are needed for each new release.
 3. Run the Release workflow manually (`workflow_dispatch`) with:
+   - `source_ref` set to the release tag to publish.
    - `tag_name` set to the release tag to publish.
    - `publish_pypi` set to `true`.
    - `pypi_target` set to `testpypi` first. Verify with
