@@ -153,6 +153,6 @@ stable release line.
 | UDS | Linux/macOS loopback tested; Windows API is exposed, loopback validation pending |
 | Core compatibility | `wirestead` Python 0.9.x targets Wirestead C++ core 0.9.x |
 
-Users migrating from UniLink should switch package and import names to
+Users migrating from Unilink should switch package and import names to
 `wirestead`. See the core migration guide:
 https://github.com/wirestead/wirestead/blob/main/docs/migration-from-unilink.md
