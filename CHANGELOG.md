@@ -2,6 +2,25 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Added
+
+- Expanded the wheel build matrix to CPython 3.8, 3.9, 3.10, 3.11, 3.12, and
+  3.13 across the declared Linux, macOS, and Windows wheel targets.
+- Added installed-wheel consumer smoke validation that installs the built wheel
+  into a fresh virtual environment from a downloaded artifact, verifies the
+  imported module is not coming from the source tree, checks the public version,
+  and runs TCP and UDP loopback over `127.0.0.1`.
+- Added UDP loopback integration coverage for the Python bindings.
+
+### Changed
+
+- Aligned PyPI metadata URLs, Python classifiers, README support tables, and CI
+  build dependency pins with the current 0.9.x support policy.
+- Re-enabled vcpkg package consumption in CI now that `wirestead` is available
+  from the official vcpkg registry.
+
 ## v0.9.1
 
 Release aligned with Wirestead C++ core 0.9.1.
@@ -44,7 +63,7 @@ Release aligned with unilink C++ core 0.7.4.
 
 - Synced Python package metadata, runtime version, tests, documentation, and
   CI validation with the unilink C++ core 0.7.4 release line.
-- Kept build and release dependency installation aligned with pybind11 3.x.
+- Kept build and release dependency installation aligned with pybind11 2.x.
 
 ## v0.7.3
 

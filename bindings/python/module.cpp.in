@@ -3,6 +3,14 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <boost/asio/executor_work_guard.hpp>
+#include <boost/asio/io_context.hpp>
+#include <chrono>
+#include <future>
+#include <memory>
+#include <stop_token>
+#include <thread>
+
 #include "wirestead/framer/line_framer.hpp"
 #include "wirestead/framer/packet_framer.hpp"
 #include "wirestead/wirestead.hpp"
@@ -22,6 +30,56 @@ template <typename Channel>
 base::constants::BackpressureStrategy write_only_backpressure_strategy(const Channel&) {
   throw py::attribute_error("backpressure_strategy is write-only");
 }
+
+#ifdef _WIN32
+class WindowsManagedTcpServer : public TcpServer {
+ public:
+  explicit WindowsManagedTcpServer(uint16_t port)
+      : WindowsManagedTcpServer(port, std::make_shared<boost::asio::io_context>()) {}
+
+  ~WindowsManagedTcpServer() override {
+    try {
+      stop();
+    } catch (...) {
+    }
+    stop_context();
+  }
+
+ private:
+  WindowsManagedTcpServer(uint16_t port, std::shared_ptr<boost::asio::io_context> ioc)
+      : TcpServer(port, ioc), ioc_(std::move(ioc)) {
+    work_guard_ = std::make_unique<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
+        boost::asio::make_work_guard(*ioc_));
+    thread_ = std::jthread([ioc = ioc_](std::stop_token st) {
+      try {
+        std::stop_callback cb(st, [ioc] { ioc->stop(); });
+        ioc->run();
+      } catch (...) {
+      }
+    });
+  }
+
+  void stop_context() noexcept {
+    try {
+      if (work_guard_) work_guard_.reset();
+      if (ioc_) ioc_->stop();
+      if (thread_.joinable()) {
+        if (std::this_thread::get_id() == thread_.get_id()) {
+          thread_.detach();
+        } else {
+          thread_.request_stop();
+          thread_.join();
+        }
+      }
+    } catch (...) {
+    }
+  }
+
+  std::shared_ptr<boost::asio::io_context> ioc_;
+  std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> work_guard_;
+  std::jthread thread_;
+};
+#endif
 
 }  // namespace
 
@@ -97,13 +155,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&, uint16_t>())
       .def("start",
            [](TcpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](TcpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](TcpClient& self) {
@@ -219,16 +279,38 @@ PYBIND11_MODULE(_core, m) {
 
   // TcpServer
   py::class_<TcpServer, std::shared_ptr<TcpServer>>(m, "TcpServer")
-      .def(py::init<uint16_t>())
+      .def(py::init([](uint16_t port) {
+#ifdef _WIN32
+        return std::static_pointer_cast<TcpServer>(std::make_shared<WindowsManagedTcpServer>(port));
+#else
+        return std::make_shared<TcpServer>(port);
+#endif
+      }))
       .def("start",
            [](TcpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+#ifdef _WIN32
+             if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
+               return false;
+             }
+             return self.listening();
+#else
+             return future.get();
+#endif
            })
       .def("start_sync",
            [](TcpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+#ifdef _WIN32
+             if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
+               return false;
+             }
+             return self.listening();
+#else
+             return future.get();
+#endif
            })
       .def("stop",
            [](TcpServer& self) {
@@ -248,12 +330,27 @@ PYBIND11_MODULE(_core, m) {
       .def("client_count", &TcpServer::client_count)
       .def("connected_clients", &TcpServer::connected_clients)
       .def("listening", &TcpServer::listening)
-      .def("auto_start", &TcpServer::auto_start, py::arg("start") = true)
-      .def("bind_address", &TcpServer::bind_address)
-      .def("port_retry", &TcpServer::port_retry, py::arg("enable") = true, py::arg("max_retries") = 3,
-           py::arg("retry_interval_ms") = 1000)
-      .def("idle_timeout", &TcpServer::idle_timeout)
-      .def("max_clients", &TcpServer::max_clients)
+      .def(
+          "auto_start", [](TcpServer& self, bool start) -> TcpServer& { return self.auto_start(start); },
+          py::arg("start") = true, py::return_value_policy::reference_internal)
+      .def(
+          "bind_address",
+          [](TcpServer& self, const std::string& address) -> TcpServer& { return self.bind_address(address); },
+          py::return_value_policy::reference_internal)
+      .def(
+          "port_retry",
+          [](TcpServer& self, bool enable, int max_retries, int retry_interval_ms) -> TcpServer& {
+            return self.port_retry(enable, max_retries, retry_interval_ms);
+          },
+          py::arg("enable") = true, py::arg("max_retries") = 3, py::arg("retry_interval_ms") = 1000,
+          py::return_value_policy::reference_internal)
+      .def(
+          "idle_timeout",
+          [](TcpServer& self, std::chrono::milliseconds timeout) -> TcpServer& { return self.idle_timeout(timeout); },
+          py::return_value_policy::reference_internal)
+      .def(
+          "max_clients", [](TcpServer& self, size_t max) -> TcpServer& { return self.max_clients(max); },
+          py::return_value_policy::reference_internal)
       .def(
           "use_line_framer",
           [](TcpServer& self, const std::string& d, bool i, size_t m) {
@@ -340,13 +437,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&, uint32_t>())
       .def("start",
            [](Serial& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](Serial& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](Serial& self) {
@@ -453,13 +552,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&>())
       .def("start",
            [](UdsClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdsClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdsClient& self) {
@@ -563,13 +664,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&>())
       .def("start",
            [](UdsServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdsServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdsServer& self) {
@@ -690,13 +793,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const config::UdpConfig&>())
       .def("start",
            [](UdpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdpClient& self) {
@@ -804,13 +909,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const config::UdpConfig&>())
       .def("start",
            [](UdpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdpServer& self) {

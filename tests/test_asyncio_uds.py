@@ -9,15 +9,27 @@ from wirestead.asyncio import AsyncUdsClient
 RUN_LOOPBACK_TESTS = os.environ.get("WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS") == "1"
 
 
-def supports_uds():
-    return hasattr(socket, "AF_UNIX")
+def supports_uds_loopback():
+    return os.name != "nt" and hasattr(socket, "AF_UNIX")
+
+
+async def wait_until(predicate, timeout=2.0, interval=0.01):
+    deadline = asyncio.get_running_loop().time() + timeout
+    while asyncio.get_running_loop().time() < deadline:
+        if predicate():
+            return True
+        await asyncio.sleep(interval)
+    return False
 
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(not supports_uds(), reason="AF_UNIX is not available on this Python/OS")
+@pytest.mark.skipif(
+    not supports_uds_loopback(),
+    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+)
 async def test_async_uds_client_reads_line_message(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
@@ -32,12 +44,14 @@ async def test_async_uds_client_reads_line_message(uds_socket_path):
 
     client = AsyncUdsClient(socket_path)
     client.use_line_framer("\n", False, 65536)
-    assert await client.start()
+    try:
+        assert await client.start()
+        assert await wait_until(lambda: server.client_count() > 0)
 
-    assert server.broadcast(b'{"seq":1}\n')
+        assert server.broadcast(b'{"seq":1}\n')
 
-    ctx = await asyncio.wait_for(client.read_message(), timeout=2.0)
-    assert bytes(ctx.data).decode("utf-8") == '{"seq":1}'
-
-    client.stop()
-    server.stop()
+        ctx = await asyncio.wait_for(client.read_message(), timeout=2.0)
+        assert bytes(ctx.data).decode("utf-8") == '{"seq":1}'
+    finally:
+        client.stop()
+        server.stop()

@@ -104,11 +104,25 @@ if(WIRESTEAD_CORE_SOURCE_DIR)
       OFF
       CACHE BOOL "" FORCE
   )
+  set(WIRESTEAD_ENABLE_EXPORT_HEADER
+      OFF
+      CACHE BOOL "" FORCE
+  )
+  set(UNILINK_ENABLE_EXPORT_HEADER
+      OFF
+      CACHE BOOL "" FORCE
+  )
 
   add_subdirectory(
     "${WIRESTEAD_CORE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/wirestead-core"
   )
   _wirestead_python_select_core_target()
+
+  if(WIN32)
+    target_compile_definitions(
+      ${WIRESTEAD_PYTHON_CORE_TARGET} PUBLIC WIRESTEAD_STATIC_DEFINE
+    )
+  endif()
 else()
   message(STATUS "Using installed Wirestead CMake package")
   find_package(wirestead CONFIG REQUIRED)

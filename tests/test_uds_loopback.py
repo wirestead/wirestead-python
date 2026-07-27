@@ -18,14 +18,17 @@ def wait_until(predicate, timeout=5.0, interval=0.01):
     return False
 
 
-def supports_uds():
-    return hasattr(socket, "AF_UNIX")
+def supports_uds_loopback():
+    return os.name != "nt" and hasattr(socket, "AF_UNIX")
 
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.skipif(not supports_uds(), reason="AF_UNIX is not available on this Python/OS")
+@pytest.mark.skipif(
+    not supports_uds_loopback(),
+    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+)
 def test_uds_client_server_loopback(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
@@ -58,7 +61,10 @@ def test_uds_client_server_loopback(uds_socket_path):
     server.stop()
 
 
-@pytest.mark.skipif(not supports_uds(), reason="AF_UNIX is not available on this Python/OS")
+@pytest.mark.skipif(
+    not supports_uds_loopback(),
+    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+)
 def test_uds_line_framer_jsonl(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
