@@ -3,8 +3,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <boost/asio/io_context.hpp>
 #include <chrono>
 #include <future>
+#include <memory>
 
 #include "wirestead/framer/line_framer.hpp"
 #include "wirestead/framer/packet_framer.hpp"
@@ -224,7 +226,16 @@ PYBIND11_MODULE(_core, m) {
 
   // TcpServer
   py::class_<TcpServer, std::shared_ptr<TcpServer>>(m, "TcpServer")
-      .def(py::init<uint16_t>())
+      .def(py::init([](uint16_t port) {
+#ifdef _WIN32
+        auto ioc = std::make_shared<boost::asio::io_context>();
+        auto server = std::make_shared<TcpServer>(port, ioc);
+        server->manage_external_context(true);
+        return server;
+#else
+        return std::make_shared<TcpServer>(port);
+#endif
+      }))
       .def("start",
            [](TcpServer& self) {
              auto future = self.start();
