@@ -227,6 +227,10 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<uint16_t>())
       .def("start",
            [](TcpServer& self) {
+#ifdef _WIN32
+             // Avoid the owned io_context thread path in Windows Python extension builds.
+             self.shared_context(true);
+#endif
              auto future = self.start();
              py::gil_scoped_release release;
 #ifdef _WIN32
@@ -240,6 +244,10 @@ PYBIND11_MODULE(_core, m) {
            })
       .def("start_sync",
            [](TcpServer& self) {
+#ifdef _WIN32
+             // Avoid the owned io_context thread path in Windows Python extension builds.
+             self.shared_context(true);
+#endif
              auto future = self.start();
              py::gil_scoped_release release;
 #ifdef _WIN32
