@@ -13,6 +13,15 @@ def supports_uds_loopback():
     return os.name != "nt" and hasattr(socket, "AF_UNIX")
 
 
+async def wait_until(predicate, timeout=2.0, interval=0.01):
+    deadline = asyncio.get_running_loop().time() + timeout
+    while asyncio.get_running_loop().time() < deadline:
+        if predicate():
+            return True
+        await asyncio.sleep(interval)
+    return False
+
+
 pytestmark = pytest.mark.integration
 
 
@@ -35,12 +44,14 @@ async def test_async_uds_client_reads_line_message(uds_socket_path):
 
     client = AsyncUdsClient(socket_path)
     client.use_line_framer("\n", False, 65536)
-    assert await client.start()
+    try:
+        assert await client.start()
+        assert await wait_until(lambda: server.client_count() > 0)
 
-    assert server.broadcast(b'{"seq":1}\n')
+        assert server.broadcast(b'{"seq":1}\n')
 
-    ctx = await asyncio.wait_for(client.read_message(), timeout=2.0)
-    assert bytes(ctx.data).decode("utf-8") == '{"seq":1}'
-
-    client.stop()
-    server.stop()
+        ctx = await asyncio.wait_for(client.read_message(), timeout=2.0)
+        assert bytes(ctx.data).decode("utf-8") == '{"seq":1}'
+    finally:
+        client.stop()
+        server.stop()
