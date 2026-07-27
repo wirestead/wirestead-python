@@ -6,8 +6,12 @@ on:
       - "v*"
   workflow_dispatch:
     inputs:
+      source_ref:
+        description: "Git ref to build for a manual release validation"
+        required: true
+        default: "main"
       tag_name:
-        description: "Tag name to build and publish"
+        description: "Expected version tag and release name"
         required: true
         default: "v0.9.1"
       upload:
@@ -41,7 +45,7 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -111,13 +115,13 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
       - name: Checkout Wirestead core
         uses: actions/checkout@v7
         with:
           repository: wirestead/wirestead
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
           path: wirestead-core
 
       - name: Set up Python
@@ -232,13 +236,13 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
       - name: Checkout Wirestead core
         uses: actions/checkout@v7
         with:
           repository: wirestead/wirestead
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
           path: wirestead-core
 
       - name: Build manylinux wheels
@@ -365,7 +369,7 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -398,7 +402,7 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
       - name: Download release artifacts
         uses: actions/download-artifact@v8
