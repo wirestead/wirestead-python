@@ -97,13 +97,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&, uint16_t>())
       .def("start",
            [](TcpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](TcpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](TcpClient& self) {
@@ -222,13 +224,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<uint16_t>())
       .def("start",
            [](TcpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](TcpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](TcpServer& self) {
@@ -340,13 +344,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&, uint32_t>())
       .def("start",
            [](Serial& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](Serial& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](Serial& self) {
@@ -453,13 +459,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&>())
       .def("start",
            [](UdsClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdsClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdsClient& self) {
@@ -563,13 +571,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const std::string&>())
       .def("start",
            [](UdsServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdsServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdsServer& self) {
@@ -690,13 +700,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const config::UdpConfig&>())
       .def("start",
            [](UdpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdpClient& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdpClient& self) {
@@ -804,13 +816,15 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<const config::UdpConfig&>())
       .def("start",
            [](UdpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start().get();
+             return future.get();
            })
       .def("start_sync",
            [](UdpServer& self) {
+             auto future = self.start();
              py::gil_scoped_release release;
-             return self.start_sync();
+             return future.get();
            })
       .def("stop",
            [](UdpServer& self) {
