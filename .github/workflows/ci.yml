@@ -127,7 +127,9 @@ jobs:
         run: |
           $site = python -c "import site; print(site.getsitepackages()[0])"
           $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
-          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $vcRuntime = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC" -Filter MSVCP140.dll -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
+          $vcRuntimeBin = if ($vcRuntime) { $vcRuntime.DirectoryName } else { "" }
+          $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
 
@@ -143,7 +145,9 @@ jobs:
         run: |
           $site = python -c "import site; print(site.getsitepackages()[0])"
           $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
-          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $vcRuntime = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC" -Filter MSVCP140.dll -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
+          $vcRuntimeBin = if ($vcRuntime) { $vcRuntime.DirectoryName } else { "" }
+          $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
 
@@ -155,7 +159,9 @@ jobs:
         run: |
           $site = python -c "import site; print(site.getsitepackages()[0])"
           $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
-          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $vcRuntime = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC" -Filter MSVCP140.dll -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
+          $vcRuntimeBin = if ($vcRuntime) { $vcRuntime.DirectoryName } else { "" }
+          $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
 
@@ -178,7 +184,9 @@ jobs:
         run: |
           $site = python -c "import site; print(site.getsitepackages()[0])"
           $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
-          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $vcRuntime = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC" -Filter MSVCP140.dll -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
+          $vcRuntimeBin = if ($vcRuntime) { $vcRuntime.DirectoryName } else { "" }
+          $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
 
