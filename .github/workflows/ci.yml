@@ -149,6 +149,18 @@ jobs:
 
           python scripts/diagnose_windows_tcp_server.py
 
+      - name: Diagnose Windows TCP server native stack
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $site = python -c "import site; print(site.getsitepackages()[0])"
+          $vcpkgBin = "${{ github.workspace }}/vcpkg/installed/x64-windows-static-md/bin"
+          $env:PATH = "$site;$site\wirestead;$vcpkgBin;$env:PATH"
+          $env:WIRESTEAD_INSTALL_PATH = $site
+          $env:WIRESTEAD_PACKAGE_PATH = $site
+
+          ./scripts/diagnose_windows_tcp_server_native.ps1
+
       - name: Run tests
         if: runner.os != 'Windows'
         env:
