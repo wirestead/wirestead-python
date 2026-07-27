@@ -3,6 +3,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <chrono>
+#include <future>
+
 #include "wirestead/framer/line_framer.hpp"
 #include "wirestead/framer/packet_framer.hpp"
 #include "wirestead/wirestead.hpp"
@@ -224,11 +227,29 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<uint16_t>())
       .def("start",
            [](TcpServer& self) {
-             return self.start().get();
+             auto future = self.start();
+             py::gil_scoped_release release;
+#ifdef _WIN32
+             if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
+               return false;
+             }
+             return self.listening();
+#else
+             return future.get();
+#endif
            })
       .def("start_sync",
            [](TcpServer& self) {
-             return self.start_sync();
+             auto future = self.start();
+             py::gil_scoped_release release;
+#ifdef _WIN32
+             if (future.wait_for(std::chrono::seconds(5)) == std::future_status::timeout) {
+               return false;
+             }
+             return self.listening();
+#else
+             return future.get();
+#endif
            })
       .def("stop",
            [](TcpServer& self) {
