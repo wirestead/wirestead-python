@@ -33,6 +33,20 @@ pybind11_add_module(_core "${CMAKE_CURRENT_BINARY_DIR}/generated/module.cpp")
 target_link_libraries(_core PRIVATE ${WIRESTEAD_PYTHON_CORE_TARGET})
 target_compile_features(_core PRIVATE cxx_std_20)
 
+if(MSVC)
+  # Match Wirestead core's MSVC LTCG workaround for the extension module.
+  # pybind11_add_module may enable LTO extras for release builds, and the core
+  # project already disables them for Wirestead library targets on MSVC.
+  set_property(TARGET _core PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  target_compile_options(
+    _core PRIVATE "$<$<CONFIG:Release>:/GL->" "$<$<CONFIG:RelWithDebInfo>:/GL->"
+                  "$<$<CONFIG:MinSizeRel>:/GL->"
+  )
+  set_property(TARGET _core APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /LTCG:OFF")
+  set_property(TARGET _core APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /LTCG:OFF")
+  set_property(TARGET _core APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /LTCG:OFF")
+endif()
+
 if(APPLE)
   set_target_properties(_core PROPERTIES INSTALL_RPATH "@loader_path")
 elseif(UNIX)
