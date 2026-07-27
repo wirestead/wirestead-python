@@ -3,10 +3,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <chrono>
 #include <future>
 #include <memory>
+#include <stop_token>
+#include <thread>
 
 #include "wirestead/framer/line_framer.hpp"
 #include "wirestead/framer/packet_framer.hpp"
@@ -27,6 +30,56 @@ template <typename Channel>
 base::constants::BackpressureStrategy write_only_backpressure_strategy(const Channel&) {
   throw py::attribute_error("backpressure_strategy is write-only");
 }
+
+#ifdef _WIN32
+class WindowsManagedTcpServer : public TcpServer {
+ public:
+  explicit WindowsManagedTcpServer(uint16_t port)
+      : WindowsManagedTcpServer(port, std::make_shared<boost::asio::io_context>()) {}
+
+  ~WindowsManagedTcpServer() override {
+    try {
+      stop();
+    } catch (...) {
+    }
+    stop_context();
+  }
+
+ private:
+  WindowsManagedTcpServer(uint16_t port, std::shared_ptr<boost::asio::io_context> ioc)
+      : TcpServer(port, ioc), ioc_(std::move(ioc)) {
+    work_guard_ = std::make_unique<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
+        boost::asio::make_work_guard(*ioc_));
+    thread_ = std::jthread([ioc = ioc_](std::stop_token st) {
+      try {
+        std::stop_callback cb(st, [ioc] { ioc->stop(); });
+        ioc->run();
+      } catch (...) {
+      }
+    });
+  }
+
+  void stop_context() noexcept {
+    try {
+      if (work_guard_) work_guard_.reset();
+      if (ioc_) ioc_->stop();
+      if (thread_.joinable()) {
+        if (std::this_thread::get_id() == thread_.get_id()) {
+          thread_.detach();
+        } else {
+          thread_.request_stop();
+          thread_.join();
+        }
+      }
+    } catch (...) {
+    }
+  }
+
+  std::shared_ptr<boost::asio::io_context> ioc_;
+  std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> work_guard_;
+  std::jthread thread_;
+};
+#endif
 
 }  // namespace
 
@@ -228,10 +281,7 @@ PYBIND11_MODULE(_core, m) {
   py::class_<TcpServer, std::shared_ptr<TcpServer>>(m, "TcpServer")
       .def(py::init([](uint16_t port) {
 #ifdef _WIN32
-        auto ioc = std::make_shared<boost::asio::io_context>();
-        auto server = std::make_shared<TcpServer>(port, ioc);
-        server->manage_external_context(true);
-        return server;
+        return std::static_pointer_cast<TcpServer>(std::make_shared<WindowsManagedTcpServer>(port));
 #else
         return std::make_shared<TcpServer>(port);
 #endif
@@ -284,9 +334,8 @@ PYBIND11_MODULE(_core, m) {
           "auto_start", [](TcpServer& self, bool start) -> TcpServer& { return self.auto_start(start); },
           py::arg("start") = true, py::return_value_policy::reference_internal)
       .def(
-          "bind_address", [](TcpServer& self, const std::string& address) -> TcpServer& {
-            return self.bind_address(address);
-          },
+          "bind_address",
+          [](TcpServer& self, const std::string& address) -> TcpServer& { return self.bind_address(address); },
           py::return_value_policy::reference_internal)
       .def(
           "port_retry",
