@@ -62,6 +62,7 @@ def _tcp_loopback(wirestead) -> None:
 
     try:
         server.use_line_framer("\n")
+        server.bind_address("127.0.0.1")
         server.on_connect(lambda _ctx: connected.set())
         server.on_message(lambda ctx: (received.append(bytes(ctx.data)), got_message.set()))
 

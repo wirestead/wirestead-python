@@ -52,6 +52,7 @@ def test_tcp_loopback_smoke():
 
     try:
         server.use_line_framer("\n")
+        server.bind_address("127.0.0.1")
         server.on_connect(on_connect)
         server.on_message(on_message)
 
