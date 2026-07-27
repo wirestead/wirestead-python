@@ -44,6 +44,7 @@ def _run_case(name: str, source: str) -> int:
 
 def main() -> int:
     port = _reserve_port()
+    loopback_port = _reserve_port()
     cases = {
         "construct": """
             import wirestead
@@ -80,6 +81,44 @@ def main() -> int:
             print("listening", server.listening(), flush=True)
             server.stop()
             print("stopped", flush=True)
+        """,
+        "server_loopback": f"""
+            import socket
+            import time
+            import wirestead
+
+            def wait_until(predicate, timeout=5.0, interval=0.01):
+                deadline = time.monotonic() + timeout
+                while time.monotonic() < deadline:
+                    if predicate():
+                        return True
+                    time.sleep(interval)
+                return False
+
+            server = wirestead.TcpServer({loopback_port})
+            try:
+                print("before bind", flush=True)
+                server.bind_address("127.0.0.1")
+                print("before start", flush=True)
+                print("start", server.start(), flush=True)
+                print("listening", server.listening(), flush=True)
+                print("before connect", flush=True)
+                peer = socket.create_connection(("127.0.0.1", {loopback_port}), timeout=3.0)
+                with peer:
+                    peer.settimeout(3.0)
+                    print("connected", flush=True)
+                    print("before client_count", flush=True)
+                    print("client_count_ready", wait_until(lambda: server.client_count() == 1), flush=True)
+                    print("client_count", server.client_count(), flush=True)
+                    print("before broadcast", flush=True)
+                    print("broadcast", server.broadcast(b"diag-tcp\\n"), flush=True)
+                    print("before recv", flush=True)
+                    print("recv", peer.recv(1024), flush=True)
+                    print("peer closed", flush=True)
+            finally:
+                print("before stop", flush=True)
+                server.stop()
+                print("stopped", flush=True)
         """,
     }
 
