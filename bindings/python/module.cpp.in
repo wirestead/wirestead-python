@@ -224,15 +224,11 @@ PYBIND11_MODULE(_core, m) {
       .def(py::init<uint16_t>())
       .def("start",
            [](TcpServer& self) {
-             auto future = self.start();
-             py::gil_scoped_release release;
-             return future.get();
+             return self.start().get();
            })
       .def("start_sync",
            [](TcpServer& self) {
-             auto future = self.start();
-             py::gil_scoped_release release;
-             return future.get();
+             return self.start_sync();
            })
       .def("stop",
            [](TcpServer& self) {
