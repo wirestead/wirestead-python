@@ -30,13 +30,18 @@ def _add_windows_dll_directories(package_dir: Path) -> None:
 
     _register_windows_dll_directory(package_dir)
 
+    for path_str in os.environ.get("WIRESTEAD_WINDOWS_DLL_DIRS", "").split(
+        os.pathsep
+    ):
+        if path_str:
+            _register_windows_dll_directory(Path(path_str))
+
     for path_str in os.environ.get("PATH", "").split(os.pathsep):
         if not path_str:
             continue
         path_lower = path_str.lower()
         if (
             "vcpkg" in path_lower
-            or "bin" in path_lower
             or "wirestead" in path_lower
             or "unilink" in path_lower
         ):

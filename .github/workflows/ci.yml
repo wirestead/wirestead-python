@@ -131,6 +131,7 @@ jobs:
           if (-not $vcRuntime) { throw "MSVC x64 runtime not found" }
           $vcRuntimeBin = $vcRuntime.DirectoryName
           Write-Host "Using VC runtime path: $vcRuntimeBin"
+          $env:WIRESTEAD_WINDOWS_DLL_DIRS = "$vcRuntimeBin;$vcpkgBin"
           $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
@@ -151,6 +152,7 @@ jobs:
           if (-not $vcRuntime) { throw "MSVC x64 runtime not found" }
           $vcRuntimeBin = $vcRuntime.DirectoryName
           Write-Host "Using VC runtime path: $vcRuntimeBin"
+          $env:WIRESTEAD_WINDOWS_DLL_DIRS = "$vcRuntimeBin;$vcpkgBin"
           $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
@@ -167,6 +169,7 @@ jobs:
           if (-not $vcRuntime) { throw "MSVC x64 runtime not found" }
           $vcRuntimeBin = $vcRuntime.DirectoryName
           Write-Host "Using VC runtime path: $vcRuntimeBin"
+          $env:WIRESTEAD_WINDOWS_DLL_DIRS = "$vcRuntimeBin;$vcpkgBin"
           $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
@@ -194,6 +197,7 @@ jobs:
           if (-not $vcRuntime) { throw "MSVC x64 runtime not found" }
           $vcRuntimeBin = $vcRuntime.DirectoryName
           Write-Host "Using VC runtime path: $vcRuntimeBin"
+          $env:WIRESTEAD_WINDOWS_DLL_DIRS = "$vcRuntimeBin;$vcpkgBin"
           $env:PATH = "$vcRuntimeBin;$site;$site\wirestead;$vcpkgBin;$env:PATH"
           $env:WIRESTEAD_INSTALL_PATH = $site
           $env:WIRESTEAD_PACKAGE_PATH = $site
