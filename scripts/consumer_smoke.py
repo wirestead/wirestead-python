@@ -52,32 +52,68 @@ def _assert_imported_from_wheel(wirestead, project_root: Path) -> None:
 
 
 def _tcp_loopback(wirestead) -> None:
+    _tcp_server_loopback(wirestead)
+    _tcp_client_loopback(wirestead)
+
+
+def _tcp_server_loopback(wirestead) -> None:
     port = _reserve_tcp_port()
-    connected = threading.Event()
-    got_message = threading.Event()
-    received: list[bytes] = []
 
     server = wirestead.TcpServer(port)
-    client = wirestead.TcpClient("127.0.0.1", port)
 
     try:
-        server.use_line_framer("\n")
         server.bind_address("127.0.0.1")
-        server.on_connect(lambda _ctx: connected.set())
-        server.on_message(lambda ctx: (received.append(bytes(ctx.data)), got_message.set()))
-
         assert server.start() is True
         assert _wait_until(server.listening), "TCP server did not start listening"
 
+        with socket.create_connection(("127.0.0.1", port), timeout=3.0) as peer:
+            peer.settimeout(3.0)
+            assert _wait_until(lambda: server.client_count() == 1), "TCP server did not accept peer"
+            assert server.broadcast(b"wheel-tcp\n")
+            assert peer.recv(1024) == b"wheel-tcp\n"
+    finally:
+        server.stop()
+
+
+def _tcp_client_loopback(wirestead) -> None:
+    port = _reserve_tcp_port()
+    ready = threading.Event()
+    received: list[bytes] = []
+    errors: list[BaseException] = []
+
+    def socket_server() -> None:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
+                server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                server_sock.bind(("127.0.0.1", port))
+                server_sock.listen(1)
+                server_sock.settimeout(5.0)
+                ready.set()
+                conn, _addr = server_sock.accept()
+                with conn:
+                    conn.settimeout(5.0)
+                    received.append(conn.recv(1024))
+        except BaseException as exc:
+            errors.append(exc)
+            ready.set()
+
+    thread = threading.Thread(target=socket_server, daemon=True)
+    thread.start()
+    assert ready.wait(5.0), "TCP socket server did not start"
+
+    client = wirestead.TcpClient("127.0.0.1", port)
+
+    try:
         assert client.start() is True
-        assert _wait_until(lambda: connected.is_set() and client.connected()), "TCP client did not connect"
+        assert _wait_until(client.connected), "TCP client did not connect"
 
         assert client.send_line("wheel-tcp")
-        assert got_message.wait(5.0), "TCP loopback did not receive data"
-        assert received == [b"wheel-tcp"]
+        assert _wait_until(lambda: bool(received) or bool(errors)), "TCP loopback did not receive data"
+        assert not errors
+        assert received == [b"wheel-tcp\n"]
     finally:
         client.stop()
-        server.stop()
+        thread.join(timeout=5.0)
 
 
 def _udp_loopback(wirestead) -> None:

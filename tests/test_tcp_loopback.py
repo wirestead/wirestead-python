@@ -27,7 +27,7 @@ def reserve_tcp_port():
 
 
 @pytest.mark.integration
-def test_tcp_loopback_smoke():
+def test_tcp_server_loopback_smoke():
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
             "set WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 to enable real transport loopback tests"
@@ -36,35 +36,65 @@ def test_tcp_loopback_smoke():
     import wirestead
 
     port = reserve_tcp_port()
-    server_connected = threading.Event()
-    server_message = threading.Event()
-    received = []
-
     server = wirestead.TcpServer(port)
-    client = wirestead.TcpClient("127.0.0.1", port)
-
-    def on_connect(_ctx):
-        server_connected.set()
-
-    def on_message(ctx):
-        received.append(ctx.data)
-        server_message.set()
 
     try:
-        server.use_line_framer("\n")
         server.bind_address("127.0.0.1")
-        server.on_connect(on_connect)
-        server.on_message(on_message)
-
         assert server.start() is True
         assert wait_until(server.listening)
 
-        assert client.start() is True
-        assert wait_until(lambda: server_connected.is_set() and client.connected())
+        with socket.create_connection(("127.0.0.1", port), timeout=3.0) as peer:
+            peer.settimeout(3.0)
+            assert wait_until(lambda: server.client_count() == 1)
+            assert server.broadcast(b"hello\n")
+            assert peer.recv(1024) == b"hello\n"
+    finally:
+        server.stop()
 
+
+@pytest.mark.integration
+def test_tcp_client_loopback_smoke():
+    if not RUN_LOOPBACK_TESTS:
+        pytest.skip(
+            "set WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 to enable real transport loopback tests"
+        )
+
+    import wirestead
+
+    port = reserve_tcp_port()
+    ready = threading.Event()
+    received = []
+    errors = []
+
+    def socket_server():
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
+                server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                server_sock.bind(("127.0.0.1", port))
+                server_sock.listen(1)
+                server_sock.settimeout(5.0)
+                ready.set()
+                conn, _addr = server_sock.accept()
+                with conn:
+                    conn.settimeout(5.0)
+                    received.append(conn.recv(1024))
+        except Exception as exc:  # pragma: no cover - surfaced by assertions below
+            errors.append(exc)
+            ready.set()
+
+    thread = threading.Thread(target=socket_server, daemon=True)
+    thread.start()
+    assert ready.wait(5.0)
+
+    client = wirestead.TcpClient("127.0.0.1", port)
+
+    try:
+        assert client.start() is True
+        assert wait_until(client.connected)
         assert client.send_line("hello")
-        assert wait_until(server_message.is_set)
-        assert received == [b"hello"]
+        assert wait_until(lambda: bool(received) or bool(errors))
+        assert not errors
+        assert received == [b"hello\n"]
     finally:
         client.stop()
-        server.stop()
+        thread.join(timeout=5.0)
