@@ -19,7 +19,7 @@ def wait_until(predicate, timeout=5.0, interval=0.01):
 
 
 def supports_uds_loopback():
-    return os.name != "nt" and hasattr(socket, "AF_UNIX")
+    return hasattr(socket, "AF_UNIX")
 
 
 pytestmark = pytest.mark.integration
@@ -27,7 +27,7 @@ pytestmark = pytest.mark.integration
 
 @pytest.mark.skipif(
     not supports_uds_loopback(),
-    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+    reason="Python does not expose AF_UNIX on this platform",
 )
 def test_uds_client_server_loopback(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:
@@ -46,24 +46,24 @@ def test_uds_client_server_loopback(uds_socket_path):
     server.on_connect(lambda ctx: connected.set())
     server.on_data(lambda ctx: (received.append(bytes(ctx.data)), got_data.set()))
 
-    assert server.start_sync()
-
     client = wirestead.UdsClient(socket_path)
-    assert client.start_sync()
+    try:
+        assert server.start_sync()
+        assert client.start_sync()
 
-    assert connected.wait(2.0)
+        assert connected.wait(2.0)
 
-    assert client.send(b"hello")
-    assert got_data.wait(2.0)
-    assert received == [b"hello"]
-
-    client.stop()
-    server.stop()
+        assert client.send(b"hello")
+        assert got_data.wait(2.0)
+        assert received == [b"hello"]
+    finally:
+        client.stop()
+        server.stop()
 
 
 @pytest.mark.skipif(
     not supports_uds_loopback(),
-    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+    reason="Python does not expose AF_UNIX on this platform",
 )
 def test_uds_line_framer_jsonl(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:
@@ -82,18 +82,17 @@ def test_uds_line_framer_jsonl(uds_socket_path):
         lambda ctx: (messages.append(bytes(ctx.data).decode("utf-8")), got_message.set())
     )
 
-    assert server.start_sync()
-
     client = wirestead.UdsClient(socket_path)
-    assert client.start_sync()
+    try:
+        assert server.start_sync()
+        assert client.start_sync()
 
-    # Wait for connection
-    assert wait_until(lambda: client.connected())
+        assert wait_until(lambda: client.connected())
 
-    assert client.send(b'{"type":"metadata"}\n')
-    assert got_message.wait(2.0)
+        assert client.send(b'{"type":"metadata"}\n')
+        assert got_message.wait(2.0)
 
-    assert messages == ['{"type":"metadata"}']
-
-    client.stop()
-    server.stop()
+        assert messages == ['{"type":"metadata"}']
+    finally:
+        client.stop()
+        server.stop()

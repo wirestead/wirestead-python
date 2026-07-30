@@ -10,7 +10,7 @@ RUN_LOOPBACK_TESTS = os.environ.get("WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS") == "1
 
 
 def supports_uds_loopback():
-    return os.name != "nt" and hasattr(socket, "AF_UNIX")
+    return hasattr(socket, "AF_UNIX")
 
 
 async def wait_until(predicate, timeout=2.0, interval=0.01):
@@ -28,7 +28,7 @@ pytestmark = pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     not supports_uds_loopback(),
-    reason="UDS loopback is validated on Linux/macOS; Windows validation is pending",
+    reason="Python does not expose AF_UNIX on this platform",
 )
 async def test_async_uds_client_reads_line_message(uds_socket_path):
     if not RUN_LOOPBACK_TESTS:

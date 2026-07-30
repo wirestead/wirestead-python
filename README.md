@@ -150,7 +150,7 @@ stable release line.
 | TCP | Supported and wheel-smoke tested on Linux, Windows, and macOS |
 | UDP | Supported and wheel-smoke tested on Linux, Windows, and macOS |
 | Serial | API surface is shipped; hardware loopback is not part of wheel smoke |
-| UDS | Linux/macOS loopback tested; Windows API is exposed, loopback validation pending |
+| UDS | Supported and wheel-smoke tested on Linux, Windows, and macOS |
 | Core compatibility | `wirestead` Python 0.9.x targets Wirestead C++ core 0.9.x |
 
 Users migrating from Unilink should switch package and import names to
