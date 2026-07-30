@@ -58,4 +58,4 @@ Validation status:
 |---|---:|---:|
 | Linux | supported | tested |
 | macOS | supported | tested |
-| Windows | API exposed; loopback validation pending | pending |
+| Windows | Supported | binding and installed-wheel loopback |

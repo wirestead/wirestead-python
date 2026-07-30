@@ -10,6 +10,7 @@ from pathlib import Path
 import socket
 import sys
 import threading
+import tempfile
 import time
 import traceback
 
@@ -151,6 +152,34 @@ def _udp_loopback(wirestead) -> None:
         server.stop()
 
 
+def _uds_loopback(wirestead) -> None:
+    if not hasattr(socket, "AF_UNIX"):
+        print("UDS loopback: unavailable (Python has no AF_UNIX)", flush=True)
+        return
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        socket_path = str(Path(temp_dir) / "u.sock")
+        got_data = threading.Event()
+        received: list[bytes] = []
+
+        server = wirestead.UdsServer(socket_path)
+        client = wirestead.UdsClient(socket_path)
+
+        try:
+            server.on_data(lambda ctx: (received.append(bytes(ctx.data)), got_data.set()))
+
+            assert server.start_sync() is True
+            assert client.start_sync() is True
+            assert _wait_until(client.connected), "UDS client did not connect"
+
+            assert client.send(b"wheel-uds")
+            assert got_data.wait(5.0), "UDS loopback did not receive data"
+            assert received == [b"wheel-uds"]
+        finally:
+            client.stop()
+            server.stop()
+
+
 def _run_smoke(expected_version: str | None, project_root: Path) -> None:
     import wirestead
 
@@ -167,6 +196,8 @@ def _run_smoke(expected_version: str | None, project_root: Path) -> None:
     print("TCP loopback: ok", flush=True)
     _udp_loopback(wirestead)
     print("UDP loopback: ok", flush=True)
+    _uds_loopback(wirestead)
+    print("UDS loopback: ok", flush=True)
 
 
 def _child(expected_version: str | None, project_root: str, queue) -> None:
