@@ -6,6 +6,9 @@ All notable changes to Wirestead Python are documented in this file.
 
 ### Changed
 
+- Use the runtime `_version.py` value as the package, CMake, test, and wheel
+  validation version source, and centralize the compatible core Git ref in
+  `WIRESTEAD_CORE_REF`.
 - Validate synchronous, asyncio, and installed-wheel UDS loopback behavior on
   Windows instead of excluding Windows from the UDS test suite.
 

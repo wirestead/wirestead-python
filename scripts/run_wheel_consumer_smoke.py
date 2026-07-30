@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
+from pathlib import Path
 
 
 def _python_in_venv(venv_dir: Path) -> Path:
@@ -34,6 +35,23 @@ def _select_wheel(wheel_dir: Path) -> Path:
     return wheels[0]
 
 
+def _wheel_version(wheel: Path) -> str:
+    with zipfile.ZipFile(wheel) as archive:
+        metadata_files = [
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+        ]
+        if len(metadata_files) != 1:
+            raise SystemExit(
+                f"expected one METADATA file in {wheel}, found {len(metadata_files)}"
+            )
+        metadata = archive.read(metadata_files[0]).decode("utf-8")
+
+    for line in metadata.splitlines():
+        if line.startswith("Version: "):
+            return line[len("Version: ") :]
+    raise SystemExit(f"wheel METADATA has no Version field: {wheel}")
+
+
 def _run(command: list[str], *, cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess:
     print("+ " + " ".join(command), flush=True)
     return subprocess.run(command, cwd=cwd, check=check, text=True)
@@ -43,14 +61,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--wheel-dir", required=True)
     parser.add_argument("--project-root", required=True)
-    parser.add_argument("--expected-version", required=True)
     args = parser.parse_args()
 
-    expected_version = args.expected_version[1:] if args.expected_version.startswith("v") else args.expected_version
     wheel_dir = Path(args.wheel_dir).resolve()
     project_root = Path(args.project_root).resolve()
     wheel = _select_wheel(wheel_dir)
+    expected_version = _wheel_version(wheel)
     print(f"selected wheel: {wheel}", flush=True)
+    print(f"wheel metadata version: {expected_version}", flush=True)
 
     venv_dir = Path(tempfile.mkdtemp(prefix="wirestead-wheel-consumer-"))
     work_dir = Path(tempfile.mkdtemp(prefix="wirestead-wheel-work-"))

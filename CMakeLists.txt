@@ -1,8 +1,27 @@
 cmake_minimum_required(VERSION 3.21)
 
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/src/wirestead/_version.py"
+     WIRESTEAD_PYTHON_VERSION_LINE REGEX "^__version__ = \"[^\"]+\"$"
+)
+if(NOT WIRESTEAD_PYTHON_VERSION_LINE)
+  message(FATAL_ERROR "Unable to read Wirestead Python version")
+endif()
+string(REGEX
+       REPLACE "^__version__ = \"([^\"]+)\"$" "\\1" WIRESTEAD_PYTHON_VERSION
+               "${WIRESTEAD_PYTHON_VERSION_LINE}"
+)
+string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" WIRESTEAD_CMAKE_VERSION
+             "${WIRESTEAD_PYTHON_VERSION}"
+)
+if(NOT WIRESTEAD_CMAKE_VERSION)
+  message(
+    FATAL_ERROR "Wirestead Python version must start with major.minor.patch"
+  )
+endif()
+
 project(
   wirestead_python
-  VERSION 0.9.1
+  VERSION "${WIRESTEAD_CMAKE_VERSION}"
   DESCRIPTION
     "Cross-platform Python bindings for the Wirestead async C++ communication library"
   HOMEPAGE_URL "https://github.com/wirestead/wirestead-python"
@@ -24,7 +43,7 @@ find_package(pybind11 CONFIG REQUIRED)
 
 include(cmake/FindOrBuildWiresteadCore.cmake)
 
-set(WIRESTEAD_VERSION ${PROJECT_VERSION})
+set(WIRESTEAD_VERSION "${WIRESTEAD_PYTHON_VERSION}")
 configure_file(
   bindings/python/module.cpp.in
   "${CMAKE_CURRENT_BINARY_DIR}/generated/module.cpp" @ONLY
