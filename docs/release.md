@@ -132,10 +132,14 @@ job or dependency pins change again:
   `requires-python`, README support tables, and PyPI classifiers. Before
   expanding the matrix again, confirm `actions/setup-python`, pybind11,
   scikit-build-core, and cibuildwheel support the target CPython ABI tags.
-- `CIBW_TEST_REQUIRES` must not copy `pyproject.toml`'s
-  `pytest-asyncio>=1.4.0` test-extra pin as-is — that floor has no
-  distribution for Python 3.8. Leave it unpinned there, matching the
-  macOS/Windows jobs.
+- Test-tooling floors are per-interpreter, so `pyproject.toml`'s `test` extra
+  applies `pytest-asyncio` with environment markers: 1.3 and newer require
+  Python 3.10, 1.0 and newer require 3.9, and 3.8 tops out at 0.24. A single
+  floor covering all of them does not exist while 3.8 and 3.9 wheels ship.
+  `CIBW_TEST_REQUIRES` and the CI jobs deliberately install `pytest-asyncio`
+  unpinned, which also means CI never exercises the extra as a consumer would
+  — the "Validate test extra resolves" step in `ci.yml` covers that blind spot
+  and should stay whenever the Python matrix changes.
 - PyPI validates `classifiers` against the trove-classifiers list at upload
   time, not at build time — an invalid entry (e.g. a C++-standard
   sub-classifier that doesn't exist, unlike Python's) only fails on the

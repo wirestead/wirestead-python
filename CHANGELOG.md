@@ -4,14 +4,6 @@ All notable changes to Wirestead Python are documented in this file.
 
 ## Unreleased
 
-### Changed
-
-- Use the runtime `_version.py` value as the package, CMake, test, and wheel
-  validation version source, and centralize the compatible core Git ref in
-  `WIRESTEAD_CORE_REF`.
-- Validate synchronous, asyncio, and installed-wheel UDS loopback behavior on
-  Windows instead of excluding Windows from the UDS test suite.
-
 ### Added
 
 - Expanded the wheel build matrix to CPython 3.8, 3.9, 3.10, 3.11, 3.12, and
@@ -24,10 +16,22 @@ All notable changes to Wirestead Python are documented in this file.
 
 ### Changed
 
+- Use the runtime `_version.py` value as the package, CMake, test, and wheel
+  validation version source, and centralize the compatible core Git ref in
+  `WIRESTEAD_CORE_REF`.
+- Validate synchronous, asyncio, and installed-wheel UDS loopback behavior on
+  Windows instead of excluding Windows from the UDS test suite.
 - Aligned PyPI metadata URLs, Python classifiers, README support tables, and CI
   build dependency pins with the current 0.9.x support policy.
 - Re-enabled vcpkg package consumption in CI now that `wirestead` is available
   from the official vcpkg registry.
+
+### Fixed
+
+- Fixed the `test` extra being uninstallable on Python 3.8 and 3.9. The
+  `pytest-asyncio>=1.4.0` pin had no distribution for those interpreters, so
+  `pip install wirestead[test]` failed to resolve even though 3.8 and 3.9
+  wheels are published. The floor is now applied per interpreter.
 
 ## v0.9.1
 
