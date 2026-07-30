@@ -13,6 +13,10 @@ All notable changes to Wirestead Python are documented in this file.
   package's own metadata for the running interpreter, so a dependency floor
   with no distribution for a supported Python version fails CI instead of
   reaching PyPI.
+- Added a CI job that builds the source distribution and installs it against a
+  Wirestead core checkout. The source distribution is published to PyPI and is
+  what `pip` falls back to on platforms without a wheel, but nothing installed
+  it before, so a file missing from it would have surfaced only for users.
 - Added installed-wheel consumer smoke validation that installs the built wheel
   into a fresh virtual environment from a downloaded artifact, verifies the
   imported module is not coming from the source tree, checks the public version,
@@ -44,6 +48,10 @@ All notable changes to Wirestead Python are documented in this file.
 
 ### Fixed
 
+- A source build that cannot find a Wirestead C++ core now explains why and
+  how to supply one, instead of failing with a bare `find_package` error. This
+  is the failure users hit when `pip` falls back to the source distribution on
+  a platform with no matching wheel.
 - Fixed the `test` extra pinning a `pytest-asyncio` floor with no distribution
   for every supported interpreter, which made `pip install wirestead[test]`
   fail to resolve on the Python 3.8 and 3.9 wheels published in v0.9.1.
