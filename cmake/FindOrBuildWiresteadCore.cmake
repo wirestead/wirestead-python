@@ -124,7 +124,30 @@ if(WIRESTEAD_CORE_SOURCE_DIR)
     )
   endif()
 else()
+  find_package(wirestead CONFIG QUIET)
+  if(NOT wirestead_FOUND)
+    file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/../WIRESTEAD_CORE_REF"
+         _wirestead_core_ref LIMIT_COUNT 1
+    )
+    message(
+      FATAL_ERROR
+        "No Wirestead C++ core was found, so this source build cannot "
+        "continue.\n"
+        "If you did not ask for a source build, pip fell back to the source "
+        "distribution because no prebuilt wheel matches this platform. Wheels "
+        "cover CPython 3.10-3.13 on Linux (manylinux_2_28 x86_64 and aarch64), "
+        "macOS (arm64), and Windows (amd64).\n"
+        "To build from source, supply the core (compatible ref: "
+        "${_wirestead_core_ref}) in one of these ways:\n"
+        "  pip install wirestead "
+        "-Ccmake.define.WIRESTEAD_CORE_SOURCE_DIR=/path/to/wirestead\n"
+        "  pip install wirestead "
+        "-Ccmake.define.CMAKE_PREFIX_PATH=/path/to/wirestead-install\n"
+        "  pip install wirestead "
+        "-Ccmake.define.CMAKE_TOOLCHAIN_FILE=/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake\n"
+        "See https://github.com/wirestead/wirestead-python/blob/main/docs/installation.md"
+    )
+  endif()
   message(STATUS "Using installed Wirestead CMake package")
-  find_package(wirestead CONFIG REQUIRED)
   _wirestead_python_select_core_target()
 endif()

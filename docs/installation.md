@@ -10,6 +10,13 @@ No C++ toolchain or Wirestead core checkout is required.
 pip install wirestead
 ```
 
+On a platform with no matching wheel — Intel macOS, musl/Alpine, other CPU
+architectures, PyPy, or a CPython release newer than the list above — `pip`
+falls back to the source distribution. That build needs a Wirestead C++ core,
+which the source distribution does not vendor, so it stops with instructions
+pointing at the methods below rather than completing. The compatible core ref
+is recorded in `WIRESTEAD_CORE_REF`.
+
 The methods below build the extension locally and are meant for contributors,
 other Python versions/platforms, or consuming a custom core build.
 
