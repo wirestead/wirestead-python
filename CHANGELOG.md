@@ -34,6 +34,10 @@ All notable changes to Wirestead Python are documented in this file.
   build dependency pins with the current 0.9.x support policy.
 - Re-enabled vcpkg package consumption in CI now that `wirestead` is available
   from the official vcpkg registry.
+- Pin the `microsoft/vcpkg` checkout used by CI and the release workflow to a
+  reviewed commit recorded in `VCPKG_BASELINE`, instead of cloning whatever is
+  on its default branch at build time. Release builds of the same commit are
+  now reproducible rather than exposed to upstream drift.
 
 ### Removed
 

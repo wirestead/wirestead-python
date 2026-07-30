@@ -45,6 +45,24 @@ scripts/verify.sh \
   --installed-prefix ../wirestead-install
 ```
 
+## vcpkg Baseline
+
+`VCPKG_BASELINE` pins the `microsoft/vcpkg` commit that CI and the release
+workflow check out. Boost is supplied from that checkout, so leaving it
+unpinned made every run depend on whatever `vcpkg` had on its default branch at
+that moment — the drift that broke the Windows consumer sample with LNK2038
+runtime-library mismatches in `wirestead#552`.
+
+Bump it deliberately, in its own commit, and let CI validate the new commit:
+
+```bash
+git ls-remote https://github.com/microsoft/vcpkg.git HEAD
+```
+
+The pinned commit must contain the `wirestead` port for the matching release
+line. A full 40-character SHA is required; `tests/test_project_metadata.py`
+rejects a branch name or short SHA.
+
 ## Release Assets
 
 The Release workflow always builds the source distribution and wheels as

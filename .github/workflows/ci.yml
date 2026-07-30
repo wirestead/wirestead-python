@@ -60,11 +60,17 @@ jobs:
         run: |
           brew install cmake ninja
 
+      - name: Read vcpkg baseline
+        id: vcpkg-baseline
+        shell: bash
+        run: echo "sha=$(cat VCPKG_BASELINE)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout vcpkg
         if: runner.os == 'macOS' || runner.os == 'Windows'
         uses: actions/checkout@v7
         with:
           repository: microsoft/vcpkg
+          ref: ${{ steps.vcpkg-baseline.outputs.sha }}
           path: vcpkg
 
       - name: Cache vcpkg packages
@@ -76,7 +82,7 @@ jobs:
             vcpkg/downloads
             vcpkg/installed
             vcpkg/packages
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml', 'vcpkg/builtin-baseline', 'vcpkg/ports/boost-asio/**', 'vcpkg/ports/boost-system/**') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml', 'VCPKG_BASELINE', 'vcpkg/builtin-baseline', 'vcpkg/ports/boost-asio/**', 'vcpkg/ports/boost-system/**') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
@@ -275,10 +281,16 @@ jobs:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
 
+      - name: Read vcpkg baseline
+        id: vcpkg-baseline
+        shell: bash
+        run: echo "sha=$(cat VCPKG_BASELINE)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout vcpkg
         uses: actions/checkout@v7
         with:
           repository: microsoft/vcpkg
+          ref: ${{ steps.vcpkg-baseline.outputs.sha }}
           path: vcpkg
 
       - name: Set up Python
