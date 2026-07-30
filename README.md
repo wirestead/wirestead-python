@@ -31,7 +31,7 @@ new transport functionality.
 
 ### PyPI (recommended)
 
-Prebuilt wheels are published for Python 3.8 through 3.13 on Linux
+Prebuilt wheels are published for Python 3.10 through 3.13 on Linux
 (`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
 No C++ toolchain or Wirestead core checkout is required.
 
@@ -140,7 +140,7 @@ stable release line.
 
 | Item | Status |
 |---|---|
-| Python wheels | CPython 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13 |
+| Python wheels | CPython 3.10, 3.11, 3.12, and 3.13 |
 | Linux wheels | `manylinux_2_28` x86_64 and aarch64 |
 | Windows wheels | amd64 |
 | macOS wheels | arm64 |

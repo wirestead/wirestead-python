@@ -6,8 +6,13 @@ All notable changes to Wirestead Python are documented in this file.
 
 ### Added
 
-- Expanded the wheel build matrix to CPython 3.8, 3.9, 3.10, 3.11, 3.12, and
-  3.13 across the declared Linux, macOS, and Windows wheel targets.
+- Expanded the wheel build matrix to CPython 3.11 and 3.13, so wheels now cover
+  CPython 3.10 through 3.13 across the declared Linux, macOS, and Windows wheel
+  targets. v0.9.1 shipped 3.8, 3.10, and 3.12.
+- Added a CI check that resolves the `test` extra against the installed
+  package's own metadata for the running interpreter, so a dependency floor
+  with no distribution for a supported Python version fails CI instead of
+  reaching PyPI.
 - Added installed-wheel consumer smoke validation that installs the built wheel
   into a fresh virtual environment from a downloaded artifact, verifies the
   imported module is not coming from the source tree, checks the public version,
@@ -26,12 +31,22 @@ All notable changes to Wirestead Python are documented in this file.
 - Re-enabled vcpkg package consumption in CI now that `wirestead` is available
   from the official vcpkg registry.
 
+### Removed
+
+- Dropped support for Python 3.8 and 3.9. `requires-python` is now `>=3.10`,
+  and the wheel, CI, and consumer-smoke matrices no longer build those
+  interpreters. Both are past upstream end-of-life (3.8 in October 2024, 3.9 in
+  October 2025), the C++ core targets C++20 toolchains that the distributions
+  shipping those interpreters do not provide by default, and PyPI download data
+  for v0.9.0 and v0.9.1 recorded no installs on either version. `pip` resolves
+  existing 3.8 and 3.9 environments to v0.9.1, so they are pinned rather than
+  broken.
+
 ### Fixed
 
-- Fixed the `test` extra being uninstallable on Python 3.8 and 3.9. The
-  `pytest-asyncio>=1.4.0` pin had no distribution for those interpreters, so
-  `pip install wirestead[test]` failed to resolve even though 3.8 and 3.9
-  wheels are published. The floor is now applied per interpreter.
+- Fixed the `test` extra pinning a `pytest-asyncio` floor with no distribution
+  for every supported interpreter, which made `pip install wirestead[test]`
+  fail to resolve on the Python 3.8 and 3.9 wheels published in v0.9.1.
 
 ## v0.9.1
 
