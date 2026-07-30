@@ -111,7 +111,7 @@ install_and_test() {
 
   section "Installing Python tooling for ${name}"
   "$python" -m pip install -U pip
-  "$python" -m pip install "pytest>=8,<10" "pytest-asyncio>=1.4.0" scikit-build-core "pybind11>=2.13,<3"
+  "$python" -m pip install "pytest>=8,<10" pytest-asyncio scikit-build-core "pybind11>=2.13,<3"
 
   if [[ "$name" == "installed" ]]; then
     install_args+=(
