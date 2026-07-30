@@ -69,6 +69,13 @@ workflow builds manylinux aarch64 wheels on that triplet, so a baseline can
 pass review and still fail at release time. Confirm the core repository's
 `VCPKG_BASELINE` matches unless there is a reason to diverge.
 
+The `vcpkg baseline sync` workflow proposes that bump weekly, copying the core
+repository's value rather than tracking `vcpkg` directly, so the core CI has
+cleared a commit before it lands here. It can also be run on demand from the
+Actions tab. Note that a pull request opened with `GITHUB_TOKEN` does not
+trigger workflow runs; configure a `VCPKG_BUMP_TOKEN` secret if you want CI to
+start automatically on those pull requests.
+
 ## Release Assets
 
 The Release workflow always builds the source distribution and wheels as
