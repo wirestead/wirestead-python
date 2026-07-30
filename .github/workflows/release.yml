@@ -94,12 +94,6 @@ jobs:
         include:
           - os: macos-15
             os_label: macos-15-arm64
-            python-version: "3.8"
-          - os: macos-15
-            os_label: macos-15-arm64
-            python-version: "3.9"
-          - os: macos-15
-            os_label: macos-15-arm64
             python-version: "3.10"
           - os: macos-15
             os_label: macos-15-arm64
@@ -110,12 +104,6 @@ jobs:
           - os: macos-15
             os_label: macos-15-arm64
             python-version: "3.13"
-          - os: windows-2022
-            os_label: windows-amd64
-            python-version: "3.8"
-          - os: windows-2022
-            os_label: windows-amd64
-            python-version: "3.9"
           - os: windows-2022
             os_label: windows-amd64
             python-version: "3.10"
@@ -243,7 +231,7 @@ jobs:
 
     env:
       CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs }}
-      CIBW_BUILD: "cp38-manylinux_${{ matrix.cibw_archs }} cp39-manylinux_${{ matrix.cibw_archs }} cp310-manylinux_${{ matrix.cibw_archs }} cp311-manylinux_${{ matrix.cibw_archs }} cp312-manylinux_${{ matrix.cibw_archs }} cp313-manylinux_${{ matrix.cibw_archs }}"
+      CIBW_BUILD: "cp310-manylinux_${{ matrix.cibw_archs }} cp311-manylinux_${{ matrix.cibw_archs }} cp312-manylinux_${{ matrix.cibw_archs }} cp313-manylinux_${{ matrix.cibw_archs }}"
       CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
       CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
       CIBW_ENVIRONMENT_LINUX: >-
@@ -306,14 +294,6 @@ jobs:
           - os: ubuntu-24.04
             os_label: manylinux_2_28-x86_64
             artifact: release-wheel-manylinux_2_28-x86_64
-            python-version: "3.8"
-          - os: ubuntu-24.04
-            os_label: manylinux_2_28-x86_64
-            artifact: release-wheel-manylinux_2_28-x86_64
-            python-version: "3.9"
-          - os: ubuntu-24.04
-            os_label: manylinux_2_28-x86_64
-            artifact: release-wheel-manylinux_2_28-x86_64
             python-version: "3.10"
           - os: ubuntu-24.04
             os_label: manylinux_2_28-x86_64
@@ -330,14 +310,6 @@ jobs:
           - os: ubuntu-24.04-arm
             os_label: manylinux_2_28-aarch64
             artifact: release-wheel-manylinux_2_28-aarch64
-            python-version: "3.8"
-          - os: ubuntu-24.04-arm
-            os_label: manylinux_2_28-aarch64
-            artifact: release-wheel-manylinux_2_28-aarch64
-            python-version: "3.9"
-          - os: ubuntu-24.04-arm
-            os_label: manylinux_2_28-aarch64
-            artifact: release-wheel-manylinux_2_28-aarch64
             python-version: "3.10"
           - os: ubuntu-24.04-arm
             os_label: manylinux_2_28-aarch64
@@ -351,14 +323,6 @@ jobs:
             os_label: manylinux_2_28-aarch64
             artifact: release-wheel-manylinux_2_28-aarch64
             python-version: "3.13"
-          - os: macos-15
-            os_label: macos-15-arm64
-            artifact: release-wheel-macos-15-arm64-py3.8
-            python-version: "3.8"
-          - os: macos-15
-            os_label: macos-15-arm64
-            artifact: release-wheel-macos-15-arm64-py3.9
-            python-version: "3.9"
           - os: macos-15
             os_label: macos-15-arm64
             artifact: release-wheel-macos-15-arm64-py3.10
@@ -375,14 +339,6 @@ jobs:
             os_label: macos-15-arm64
             artifact: release-wheel-macos-15-arm64-py3.13
             python-version: "3.13"
-          - os: windows-2022
-            os_label: windows-amd64
-            artifact: release-wheel-windows-amd64-py3.8
-            python-version: "3.8"
-          - os: windows-2022
-            os_label: windows-amd64
-            artifact: release-wheel-windows-amd64-py3.9
-            python-version: "3.9"
           - os: windows-2022
             os_label: windows-amd64
             artifact: release-wheel-windows-amd64-py3.10

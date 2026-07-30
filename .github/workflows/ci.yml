@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, macos-15, windows-2022]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
 
@@ -145,10 +145,11 @@ jobs:
           }
 
       # Every other CI step installs test tooling unpinned, so nothing here
-      # exercises the `test` extra as a consumer would. That let a
-      # `pytest-asyncio>=1.4.0` pin ship while being unresolvable on Python 3.8
-      # and 3.9. Resolve the installed package's own metadata for the running
-      # interpreter so a regression fails CI instead of reaching PyPI.
+      # exercises the `test` extra as a consumer would. That is how a
+      # `pytest-asyncio` floor with no distribution for a supported interpreter
+      # shipped once already. Resolve the installed package's own metadata for
+      # the running interpreter so a regression fails CI instead of reaching
+      # PyPI.
       - name: Validate test extra resolves
         if: runner.os == 'Linux'
         run: |
