@@ -153,11 +153,17 @@ jobs:
         run: |
           brew install cmake ninja
 
+      - name: Read vcpkg baseline
+        id: vcpkg-baseline
+        shell: bash
+        run: echo "sha=$(cat VCPKG_BASELINE)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout vcpkg
         if: runner.os == 'macOS' || runner.os == 'Windows'
         uses: actions/checkout@v7
         with:
           repository: microsoft/vcpkg
+          ref: ${{ steps.vcpkg-baseline.outputs.sha }}
           path: vcpkg
 
       - name: Cache vcpkg packages
@@ -169,7 +175,7 @@ jobs:
             vcpkg/downloads
             vcpkg/installed
             vcpkg/packages
-          key: ${{ runner.os }}-vcpkg-release-${{ hashFiles('.github/workflows/release.yml', 'vcpkg/builtin-baseline', 'vcpkg/ports/boost-asio/**', 'vcpkg/ports/boost-system/**') }}
+          key: ${{ runner.os }}-vcpkg-release-${{ hashFiles('.github/workflows/release.yml', 'VCPKG_BASELINE', 'vcpkg/builtin-baseline', 'vcpkg/ports/boost-asio/**', 'vcpkg/ports/boost-system/**') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-release-
             ${{ runner.os }}-vcpkg-
@@ -236,11 +242,6 @@ jobs:
       CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
       CIBW_ENVIRONMENT_LINUX: >-
         SKBUILD_CMAKE_DEFINE="WIRESTEAD_CORE_SOURCE_DIR=/host${{ github.workspace }}/wirestead-core;VCPKG_MANIFEST_MODE=OFF;CMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake;VCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }}"
-      CIBW_BEFORE_ALL_LINUX: >-
-        dnf install -y ninja-build zip unzip perl-IPC-Cmd &&
-        git clone --depth 1 https://github.com/microsoft/vcpkg.git /vcpkg &&
-        /vcpkg/bootstrap-vcpkg.sh &&
-        /vcpkg/vcpkg install --classic boost-asio boost-system --triplet ${{ matrix.vcpkg_triplet }}
       CIBW_TEST_REQUIRES: "pytest>=8,<10 pytest-asyncio"
       CIBW_TEST_COMMAND: >-
         python -c "import wirestead; print(wirestead.__version__)" &&
@@ -264,6 +265,16 @@ jobs:
           repository: wirestead/wirestead
           ref: ${{ steps.core-ref.outputs.ref }}
           path: wirestead-core
+
+      # cibuildwheel runs this inside the manylinux container, where the
+      # baseline file is not visible, so the pinned SHA is interpolated here
+      # rather than read in the container. Job-level env cannot reference a
+      # step output, which is why this is set at run time.
+      - name: Configure pinned vcpkg for cibuildwheel
+        shell: bash
+        run: |
+          sha="$(cat VCPKG_BASELINE)"
+          echo "CIBW_BEFORE_ALL_LINUX=dnf install -y ninja-build zip unzip perl-IPC-Cmd && git init /vcpkg && git -C /vcpkg remote add origin https://github.com/microsoft/vcpkg.git && git -C /vcpkg fetch --depth 1 origin ${sha} && git -C /vcpkg checkout FETCH_HEAD && /vcpkg/bootstrap-vcpkg.sh && /vcpkg/vcpkg install --classic boost-asio boost-system --triplet ${{ matrix.vcpkg_triplet }}" >> "$GITHUB_ENV"
 
       - name: Build manylinux wheels
         uses: pypa/cibuildwheel@v3.4
