@@ -1,23 +1,22 @@
 cmake_minimum_required(VERSION 3.21)
 
-file(
-  STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/src/wirestead/_version.py"
-  WIRESTEAD_PYTHON_VERSION_LINE
-  REGEX "^__version__ = \"[^\"]+\"$"
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/src/wirestead/_version.py"
+     WIRESTEAD_PYTHON_VERSION_LINE REGEX "^__version__ = \"[^\"]+\"$"
 )
 if(NOT WIRESTEAD_PYTHON_VERSION_LINE)
   message(FATAL_ERROR "Unable to read Wirestead Python version")
 endif()
-string(
-  REGEX REPLACE "^__version__ = \"([^\"]+)\"$" "\\1"
-                WIRESTEAD_PYTHON_VERSION "${WIRESTEAD_PYTHON_VERSION_LINE}"
+string(REGEX
+       REPLACE "^__version__ = \"([^\"]+)\"$" "\\1" WIRESTEAD_PYTHON_VERSION
+               "${WIRESTEAD_PYTHON_VERSION_LINE}"
 )
-string(
-  REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" WIRESTEAD_CMAKE_VERSION
-              "${WIRESTEAD_PYTHON_VERSION}"
+string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" WIRESTEAD_CMAKE_VERSION
+             "${WIRESTEAD_PYTHON_VERSION}"
 )
 if(NOT WIRESTEAD_CMAKE_VERSION)
-  message(FATAL_ERROR "Wirestead Python version must start with major.minor.patch")
+  message(
+    FATAL_ERROR "Wirestead Python version must start with major.minor.patch"
+  )
 endif()
 
 project(
