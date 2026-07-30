@@ -144,6 +144,28 @@ jobs:
             exit 1
           }
 
+      # Every other CI step installs test tooling unpinned, so nothing here
+      # exercises the `test` extra as a consumer would. That let a
+      # `pytest-asyncio>=1.4.0` pin ship while being unresolvable on Python 3.8
+      # and 3.9. Resolve the installed package's own metadata for the running
+      # interpreter so a regression fails CI instead of reaching PyPI.
+      - name: Validate test extra resolves
+        if: runner.os == 'Linux'
+        run: |
+          python - <<'PY' > test-extra-requirements.txt
+          import importlib.metadata as md
+          from packaging.requirements import Requirement
+
+          for spec in md.requires("wirestead") or []:
+              req = Requirement(spec)
+              if req.marker and req.marker.evaluate({"extra": "test"}):
+                  print(f"{req.name}{req.specifier}")
+          PY
+          echo "test extra for $(python -V 2>&1):"
+          cat test-extra-requirements.txt
+          test -s test-extra-requirements.txt
+          python -m pip install --dry-run --ignore-installed -r test-extra-requirements.txt
+
       - name: Run tests
         if: runner.os != 'Windows'
         env:
