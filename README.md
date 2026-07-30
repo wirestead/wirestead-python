@@ -109,8 +109,7 @@ environment:
 ```bash
 python scripts/run_wheel_consumer_smoke.py \
   --wheel-dir dist \
-  --project-root . \
-  --expected-version 0.9.1
+  --project-root .
 ```
 
 For local validation across supported core consumption paths, use:

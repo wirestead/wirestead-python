@@ -13,7 +13,6 @@ on:
       tag_name:
         description: "Expected version tag and release name"
         required: true
-        default: "v0.9.1"
       upload:
         description: "Upload release assets to GitHub"
         type: boolean
@@ -37,9 +36,30 @@ permissions:
   contents: write
 
 jobs:
+  validate-release-version:
+    name: Validate release version
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Wirestead Python
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
+
+      - name: Match package version to release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+        run: |
+          PACKAGE_VERSION=$(sed -n 's/^__version__ = "\([^"]*\)"$/\1/p' src/wirestead/_version.py)
+          test -n "$PACKAGE_VERSION"
+          test "${RELEASE_TAG#v}" = "$PACKAGE_VERSION"
+          echo "release version: $PACKAGE_VERSION"
+
   source-distribution:
     name: Source distribution
     runs-on: ubuntu-24.04
+    needs: validate-release-version
 
     steps:
       - name: Checkout Wirestead Python
@@ -67,6 +87,7 @@ jobs:
   wheels:
     name: Wheel (${{ matrix.os_label }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
+    needs: validate-release-version
     strategy:
       fail-fast: false
       matrix:
@@ -117,11 +138,16 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
+      - name: Read Wirestead core ref
+        id: core-ref
+        shell: bash
+        run: echo "ref=$(cat WIRESTEAD_CORE_REF)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout Wirestead core
         uses: actions/checkout@v7
         with:
           repository: wirestead/wirestead
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
+          ref: ${{ steps.core-ref.outputs.ref }}
           path: wirestead-core
 
       - name: Set up Python
@@ -201,6 +227,7 @@ jobs:
   wheels-linux:
     name: Wheel (manylinux_2_28, ${{ matrix.arch_label }})
     runs-on: ${{ matrix.runner }}
+    needs: validate-release-version
     strategy:
       fail-fast: false
       matrix:
@@ -229,7 +256,7 @@ jobs:
       CIBW_TEST_REQUIRES: "pytest>=8,<10 pytest-asyncio"
       CIBW_TEST_COMMAND: >-
         python -c "import wirestead; print(wirestead.__version__)" &&
-        cd /tmp && python {project}/scripts/consumer_smoke.py --project-root {project} --expected-version 0.9.1 &&
+        cd /tmp && python {project}/scripts/consumer_smoke.py --project-root {project} &&
         cd {project} && PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p pytest_asyncio.plugin -m "not serial and not integration"
 
     steps:
@@ -238,11 +265,16 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
+      - name: Read Wirestead core ref
+        id: core-ref
+        shell: bash
+        run: echo "ref=$(cat WIRESTEAD_CORE_REF)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout Wirestead core
         uses: actions/checkout@v7
         with:
           repository: wirestead/wirestead
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
+          ref: ${{ steps.core-ref.outputs.ref }}
           path: wirestead-core
 
       - name: Build manylinux wheels
@@ -385,15 +417,14 @@ jobs:
           name: ${{ matrix.artifact }}
           path: wheel-artifacts
 
-      - name: Install wheel in a clean venv and run TCP/UDP loopback
+      - name: Install wheel in a clean venv and run loopback smoke tests
         shell: bash
         env:
           PROJECT_ROOT: ${{ github.workspace }}
         run: |
           python scripts/run_wheel_consumer_smoke.py \
             --wheel-dir wheel-artifacts \
-            --project-root "$PROJECT_ROOT" \
-            --expected-version ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+            --project-root "$PROJECT_ROOT"
 
   publish:
     name: Publish GitHub release assets

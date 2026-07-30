@@ -81,10 +81,10 @@ gh workflow run release.yml \
   -f publish_pypi=false
 ```
 
-`source_ref` selects the Git ref checked out from both `wirestead-python` and
-the core `wirestead` repository. The ref must exist in both repositories.
-`tag_name` supplies the expected package version for consumer smoke tests, so
-it must match the version declared by the selected Python source ref.
+`source_ref` selects the `wirestead-python` Git ref. The compatible core ref is
+read from `WIRESTEAD_CORE_REF`. `tag_name` must match the canonical package
+version in `src/wirestead/_version.py`; the workflow rejects a mismatch before
+publishing.
 
 For an existing tag, run the Release workflow manually with both `source_ref`
 and `tag_name` set to that tag and `upload` enabled. Future `v*` tag pushes
