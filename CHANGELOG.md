@@ -2,7 +2,9 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## v0.9.2
+
+Release aligned with Wirestead C++ core 0.9.2.
 
 ### Added
 
@@ -22,6 +24,10 @@ All notable changes to Wirestead Python are documented in this file.
   imported module is not coming from the source tree, checks the public version,
   and runs TCP and UDP loopback over `127.0.0.1`.
 - Added UDP loopback integration coverage for the Python bindings.
+- Added a weekly `vcpkg baseline sync` workflow that proposes a
+  `VCPKG_BASELINE` bump as a reviewable pull request, copying the core
+  repository's value so that a commit is cleared by the core CI, which builds
+  Linux ARM64, before reaching the manylinux aarch64 release wheels here.
 
 ### Changed
 
@@ -38,10 +44,6 @@ All notable changes to Wirestead Python are documented in this file.
   reviewed commit recorded in `VCPKG_BASELINE`, instead of cloning whatever is
   on its default branch at build time. Release builds of the same commit are
   now reproducible rather than exposed to upstream drift.
-- Added a weekly `vcpkg baseline sync` workflow that proposes a
-  `VCPKG_BASELINE` bump as a reviewable pull request, copying the core
-  repository's value so that a commit is cleared by the core CI, which builds
-  Linux ARM64, before reaching the manylinux aarch64 release wheels here.
 
 ### Removed
 
