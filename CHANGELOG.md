@@ -2,6 +2,21 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## v0.9.3
+
+Release aligned with Wirestead C++ core 0.9.3.
+
+No Python API changed. The core it binds to did: sustained throughput on the
+Jetson Orin Nano rose 2.3x to 5.2x on TCP and UDS for payloads from 64 B to
+4 KiB, from draining several queued buffers into one scatter-gather write
+instead of one send syscall per message, and the receive path no longer
+allocates per delivered message. Both reach Python users by rebuilding against
+the newer core; nothing in the binding had to change to pick them up.
+
+Core v0.9.3 also collapsed the C++ builder return convention, which is a
+breaking change for C++ callers. The Python binding does not use the builder
+API, so it is unaffected.
+
 ## v0.9.2
 
 Release aligned with Wirestead C++ core 0.9.2.
