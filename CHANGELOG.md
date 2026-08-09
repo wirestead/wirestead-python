@@ -2,6 +2,26 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Added
+
+- `stats()` and `reset_stats()` on every transport, returning a `RuntimeStats`
+  snapshot with the full set of counters: bytes and messages accepted, sent and
+  received; failed sends; dropped bytes and messages; backpressure events;
+  queued, pending and peak queue bytes; and whether backpressure is currently
+  active.
+
+  The C++ core has carried these since before the Python package existed, but
+  none of it was bound, so Python callers could configure
+  `backpressure_strategy` and subscribe to `on_backpressure` while having no way
+  to read the result. That gap was worst under `BackpressureStrategy.BestEffort`,
+  where the callback is not a reliable loss signal: dropping is what holds the
+  queue below the threshold that would fire it, so a server discarding hundreds
+  of megabytes can report `backpressure_events == 0` throughout. Discarded data
+  had no observable signal at all from Python. `dropped_bytes` and
+  `dropped_messages` now provide one.
+
 ## v0.9.3
 
 Release aligned with Wirestead C++ core 0.9.3.
