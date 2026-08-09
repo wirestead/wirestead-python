@@ -9,6 +9,7 @@
 #include <future>
 #include <memory>
 #include <stop_token>
+#include <string>
 #include <thread>
 
 #include "wirestead/framer/line_framer.hpp"
@@ -138,6 +139,45 @@ PYBIND11_MODULE(_core, m) {
       .def_property_readonly("message", [](const ErrorContext& self) { return std::string(self.message()); })
       .def_property_readonly("client_id", &ErrorContext::client_id);
 
+  // RuntimeStats - an immutable snapshot returned by stats(), not a live view.
+  //
+  // The three families count different layers: *_accepted is what the
+  // application handed to the library, *_sent is what the socket wrote, and
+  // *_received counts read completions rather than framed messages. Byte totals
+  // reconcile between accepted and sent; message counts do not, because queued
+  // writes are batched.
+  //
+  // Under BackpressureStrategy.BestEffort the on_backpressure callback is not a
+  // reliable loss signal. Dropping is what holds the queue below the threshold
+  // that would fire it, so whether the callback fires at all depends on how the
+  // queue happens to cross that threshold - a server dropping hundreds of
+  // megabytes can report backpressure_events == 0 throughout. Watch
+  // dropped_bytes and dropped_messages instead.
+  py::class_<RuntimeStats>(m, "RuntimeStats")
+      .def_readonly("bytes_accepted", &RuntimeStats::bytes_accepted)
+      .def_readonly("messages_accepted", &RuntimeStats::messages_accepted)
+      .def_readonly("bytes_sent", &RuntimeStats::bytes_sent)
+      .def_readonly("messages_sent", &RuntimeStats::messages_sent)
+      .def_readonly("bytes_received", &RuntimeStats::bytes_received)
+      .def_readonly("messages_received", &RuntimeStats::messages_received)
+      .def_readonly("failed_sends", &RuntimeStats::failed_sends)
+      .def_readonly("dropped_messages", &RuntimeStats::dropped_messages)
+      .def_readonly("dropped_bytes", &RuntimeStats::dropped_bytes)
+      .def_readonly("backpressure_events", &RuntimeStats::backpressure_events)
+      .def_readonly("queued_bytes", &RuntimeStats::queued_bytes)
+      .def_readonly("pending_bytes", &RuntimeStats::pending_bytes)
+      .def_readonly("max_queued_bytes", &RuntimeStats::max_queued_bytes)
+      .def_readonly("backpressure_active", &RuntimeStats::backpressure_active)
+      .def("__repr__", [](const RuntimeStats& self) {
+        return "<RuntimeStats accepted=" + std::to_string(self.bytes_accepted) + "B/" +
+               std::to_string(self.messages_accepted) + " sent=" + std::to_string(self.bytes_sent) + "B/" +
+               std::to_string(self.messages_sent) + " received=" + std::to_string(self.bytes_received) + "B/" +
+               std::to_string(self.messages_received) + " dropped=" + std::to_string(self.dropped_bytes) + "B/" +
+               std::to_string(self.dropped_messages) + " queued=" + std::to_string(self.queued_bytes) +
+               "B peak=" + std::to_string(self.max_queued_bytes) +
+               "B backpressure=" + (self.backpressure_active ? "active" : "inactive") + ">";
+      });
+
   // Framer
   py::class_<framer::IFramer, std::shared_ptr<framer::IFramer>>(m, "IFramer");
 
@@ -190,6 +230,16 @@ PYBIND11_MODULE(_core, m) {
              return self.send_blocking(data);
            })
       .def("connected", &TcpClient::connected)
+      .def("stats",
+           [](TcpClient& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](TcpClient& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &TcpClient::auto_start, py::arg("start") = true)
       .def("retry_interval", &TcpClient::retry_interval)
       .def("max_retries", &TcpClient::max_retries)
@@ -330,6 +380,16 @@ PYBIND11_MODULE(_core, m) {
       .def("client_count", &TcpServer::client_count)
       .def("connected_clients", &TcpServer::connected_clients)
       .def("listening", &TcpServer::listening)
+      .def("stats",
+           [](TcpServer& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](TcpServer& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def(
           "auto_start", [](TcpServer& self, bool start) -> TcpServer& { return self.auto_start(start); },
           py::arg("start") = true, py::return_value_policy::reference_internal)
@@ -459,6 +519,16 @@ PYBIND11_MODULE(_core, m) {
            })
       .def("send_line", &Serial::send_line)
       .def("connected", &Serial::connected)
+      .def("stats",
+           [](Serial& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](Serial& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &Serial::auto_start, py::arg("start") = true)
       .def("baud_rate", &Serial::baud_rate)
       .def("data_bits", &Serial::data_bits)
@@ -574,6 +644,16 @@ PYBIND11_MODULE(_core, m) {
            })
       .def("send_line", &UdsClient::send_line)
       .def("connected", &UdsClient::connected)
+      .def("stats",
+           [](UdsClient& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](UdsClient& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &UdsClient::auto_start, py::arg("start") = true)
       .def("retry_interval", &UdsClient::retry_interval)
       .def("max_retries", &UdsClient::max_retries)
@@ -692,6 +772,16 @@ PYBIND11_MODULE(_core, m) {
       .def("client_count", &UdsServer::client_count)
       .def("connected_clients", &UdsServer::connected_clients)
       .def("listening", &UdsServer::listening)
+      .def("stats",
+           [](UdsServer& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](UdsServer& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &UdsServer::auto_start, py::arg("start") = true)
       .def("idle_timeout", &UdsServer::idle_timeout)
       .def("max_clients", &UdsServer::max_clients)
@@ -821,6 +911,16 @@ PYBIND11_MODULE(_core, m) {
              return self.send_line(line);
            })
       .def("connected", &UdpClient::connected)
+      .def("stats",
+           [](UdpClient& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](UdpClient& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &UdpClient::auto_start, py::arg("start") = true)
       .def(
           "use_line_framer",
@@ -937,6 +1037,16 @@ PYBIND11_MODULE(_core, m) {
       .def("client_count", &UdpServer::client_count)
       .def("connected_clients", &UdpServer::connected_clients)
       .def("listening", &UdpServer::listening)
+      .def("stats",
+           [](UdpServer& self) {
+             py::gil_scoped_release release;
+             return self.stats();
+           })
+      .def("reset_stats",
+           [](UdpServer& self) {
+             py::gil_scoped_release release;
+             self.reset_stats();
+           })
       .def("auto_start", &UdpServer::auto_start, py::arg("start") = true)
       .def("idle_timeout", &UdpServer::idle_timeout)
       .def("max_clients", &UdpServer::max_clients)

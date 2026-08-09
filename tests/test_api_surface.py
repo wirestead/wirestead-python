@@ -17,10 +17,84 @@ def test_core_api_surface():
         "ErrorCode",
         "LineFramer",
         "PacketFramer",
+        "RuntimeStats",
     ]
 
     missing = [name for name in expected if not hasattr(wirestead, name)]
     assert not missing
+
+
+RUNTIME_STATS_FIELDS = (
+    "bytes_accepted",
+    "messages_accepted",
+    "bytes_sent",
+    "messages_sent",
+    "bytes_received",
+    "messages_received",
+    "failed_sends",
+    "dropped_messages",
+    "dropped_bytes",
+    "backpressure_events",
+    "queued_bytes",
+    "pending_bytes",
+    "max_queued_bytes",
+    "backpressure_active",
+)
+
+
+def test_every_transport_exposes_stats():
+    import wirestead
+
+    transports = (
+        wirestead.TcpClient,
+        wirestead.TcpServer,
+        wirestead.Serial,
+        wirestead.UdsClient,
+        wirestead.UdsServer,
+        wirestead.UdpClient,
+        wirestead.UdpServer,
+    )
+
+    missing = [
+        f"{cls.__name__}.{name}"
+        for cls in transports
+        for name in ("stats", "reset_stats")
+        if not hasattr(cls, name)
+    ]
+    assert not missing
+
+
+def test_runtime_stats_snapshot_has_every_counter():
+    import wirestead
+
+    # Constructing does not connect, so nothing has moved yet.
+    stats = wirestead.TcpClient("127.0.0.1", 65535).stats()
+
+    assert isinstance(stats, wirestead.RuntimeStats)
+
+    missing = [name for name in RUNTIME_STATS_FIELDS if not hasattr(stats, name)]
+    assert not missing
+
+    assert stats.bytes_accepted == 0
+    assert stats.bytes_sent == 0
+    assert stats.bytes_received == 0
+    assert stats.dropped_bytes == 0
+    assert stats.backpressure_events == 0
+    assert stats.backpressure_active is False
+
+    assert "RuntimeStats" in repr(stats)
+
+
+def test_runtime_stats_fields_are_read_only():
+    import pytest
+    import wirestead
+
+    stats = wirestead.TcpClient("127.0.0.1", 65535).stats()
+
+    with pytest.raises(AttributeError):
+        stats.bytes_sent = 123
+    with pytest.raises(AttributeError):
+        stats.backpressure_active = True
 
 
 def test_standard_python_surface_uses_canonical_names():
