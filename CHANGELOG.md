@@ -2,6 +2,15 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## v0.9.5
+
+Released against Wirestead C++ core v0.9.5.
+
+No Python API changed. The core it binds to lowered its minimum Boost from 1.83
+to 1.74 and stopped building tests by default; neither is visible from Python,
+and the wheels are unaffected either way since they build the core through vcpkg
+with `WIRESTEAD_BUILD_TESTS=OFF` already.
+
 ## v0.9.4
 
 Released against Wirestead C++ core v0.9.4.
