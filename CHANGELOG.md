@@ -2,7 +2,9 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## v0.9.4
+
+Released against Wirestead C++ core v0.9.4.
 
 ### Added
 
