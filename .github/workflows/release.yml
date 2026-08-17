@@ -277,7 +277,7 @@ jobs:
           echo "CIBW_BEFORE_ALL_LINUX=dnf install -y ninja-build zip unzip perl-IPC-Cmd && git init /vcpkg && git -C /vcpkg remote add origin https://github.com/microsoft/vcpkg.git && git -C /vcpkg fetch --depth 1 origin ${sha} && git -C /vcpkg checkout FETCH_HEAD && /vcpkg/bootstrap-vcpkg.sh && /vcpkg/vcpkg install --classic boost-asio boost-system --triplet ${{ matrix.vcpkg_triplet }}" >> "$GITHUB_ENV"
 
       - name: Build manylinux wheels
-        uses: pypa/cibuildwheel@v4.1
+        uses: pypa/cibuildwheel@v4.2
 
       - name: Inspect manylinux wheel dependencies
         run: |
