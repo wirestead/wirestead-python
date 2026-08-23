@@ -6,6 +6,22 @@ All notable changes to Wirestead Python are documented in this file.
 
 ### Added
 
+- Added a type stub for the compiled extension, `src/wirestead/_core.pyi`, and
+  ship it in the wheel. The package already carried a `py.typed` marker, which
+  told type checkers to analyze it while every public name came from an
+  unstubbed binary extension: mypy reported `Module has no attribute
+  "TcpClient"` and one error per symbol used, so the package could not be used
+  from a type-checked project at all. The stub is committed rather than
+  generated at build time, because the wheels cover four platforms and a
+  cross-compiled manylinux aarch64 target; `scripts/generate_stubs.sh`
+  regenerates it and CI diffs the result to catch drift.
+
+  Known gap: the stub declares `backpressure_threshold` and
+  `backpressure_strategy` as readable, because pybind11 sees a property with a
+  getter. Reading either still raises `AttributeError` at runtime, so a type
+  checker will not flag a read that fails. Fixing this needs getters on the C++
+  core, which has setters only.
+
 - Added integration coverage asserting that blocking send paths release the GIL,
   covering `TcpServer.send_to`, `UdsServer.send_to`, and `UdsClient.send_line`.
   `Serial`, `UdpServer.send_to`, and every `broadcast` are documented in the
