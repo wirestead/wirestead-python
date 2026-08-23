@@ -371,6 +371,9 @@ PYBIND11_MODULE(_core, m) {
            [](TcpServer& self, py::buffer b) {
              py::buffer_info info = b.request();
              std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             // Not a blocking path: the core delegates broadcast to try_broadcast
+             // even in Reliable mode so one slow client cannot head-of-line block
+             // the fan-out. Released anyway so the fan-out does not hold the GIL.
              py::gil_scoped_release release;
              return self.broadcast(data);
            })
@@ -779,6 +782,9 @@ PYBIND11_MODULE(_core, m) {
            [](UdsServer& self, py::buffer b) {
              py::buffer_info info = b.request();
              std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             // Not a blocking path: the core delegates broadcast to try_broadcast
+             // even in Reliable mode so one slow client cannot head-of-line block
+             // the fan-out. Released anyway so the fan-out does not hold the GIL.
              py::gil_scoped_release release;
              return self.broadcast(data);
            })
@@ -1048,6 +1054,9 @@ PYBIND11_MODULE(_core, m) {
            [](UdpServer& self, py::buffer b) {
              py::buffer_info info = b.request();
              std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             // Not a blocking path: the core delegates broadcast to try_broadcast
+             // even in Reliable mode so one slow client cannot head-of-line block
+             // the fan-out. Released anyway so the fan-out does not hold the GIL.
              py::gil_scoped_release release;
              return self.broadcast(data);
            })

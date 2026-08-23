@@ -1,14 +1,30 @@
 """Regression tests: blocking send paths must release the GIL.
 
-The default backpressure strategy is ``Reliable``, so ``send``/``send_line``/
-``send_to``/``broadcast`` block the calling thread until send-queue pressure is
-relieved. A binding that holds the GIL across that wait freezes every other
-Python thread, including the ones a caller would use to drain the queue or to
-call ``stop()``, so the interpreter cannot recover on its own.
+Under the default ``Reliable`` backpressure strategy, ``send``/``send_line`` on
+the clients and ``send_to`` on the servers block the calling thread until
+send-queue pressure is relieved. A binding that holds the GIL across that wait
+freezes every other Python thread, including the ones a caller would use to
+drain the queue or to call ``stop()``, so the interpreter cannot recover on its
+own.
 
 Each scenario runs in a subprocess: when the GIL is starved no in-process
 watchdog can fire, so a regression would hang the test session instead of
 failing it. The subprocess timeout turns that hang into a normal failure.
+
+Not covered, and why. Each of these was measured: a scenario built against a
+binding that does *not* release the GIL still ran its timer thread at full
+speed, so the test would have passed either way and protected nothing.
+
+- ``broadcast`` on every server. It is not a blocking path: the core delegates
+  it to ``try_broadcast`` even in ``Reliable`` mode so that one slow client
+  cannot head-of-line block the whole fan-out. There is no wait to starve on.
+- ``UdpServer.send_to``. It takes the blocking path in the core, but over
+  loopback the kernel accepts and drops datagrams as fast as they are offered,
+  so the send queue never reaches the backpressure threshold and the call never
+  waits. Exercising it would need a transport that can actually apply
+  backpressure to UDP.
+- ``Serial.send``/``send_line``. Blocking, but reaching them needs a real
+  serial device; there is no loopback equivalent to stall.
 """
 
 import os
@@ -106,8 +122,6 @@ def stalled_server_transport():
         time.sleep(0.01)
     assert server.client_count() == 1, "client did not register on the server"
 
-    if kind.endswith("broadcast"):
-        return lambda: server.broadcast(BLOB)
     client_id = server.connected_clients()[0]
     return lambda: server.send_to(client_id, BLOB)
 
@@ -189,7 +203,6 @@ def _supports_uds():
     [
         "tcp_client",
         "tcp_server",
-        "tcp_server_broadcast",
         pytest.param(
             "uds_client",
             marks=pytest.mark.skipif(

@@ -7,16 +7,27 @@ All notable changes to Wirestead Python are documented in this file.
 ### Added
 
 - Added integration coverage asserting that blocking send paths release the GIL,
-  covering the TCP/UDS client and server transports.
+  covering `TcpServer.send_to`, `UdsServer.send_to`, and `UdsClient.send_line`.
+  `Serial`, `UdpServer.send_to`, and every `broadcast` are documented in the
+  test module as uncovered, with the measured reason each one cannot be
+  exercised.
 
 ### Fixed
 
-- Released the GIL around blocking send paths on `Serial`, `UdsClient`,
-  `TcpServer`, `UdsServer`, and `UdpServer`. Under the default `Reliable`
-  backpressure strategy these calls block until send-queue pressure is relieved;
-  holding the GIL across that wait froze every other Python thread, so the
-  interpreter could not drain the queue or call `stop()` to recover. `TcpClient`
-  and `UdpClient` already released the GIL and are unaffected.
+- Released the GIL around blocking send paths on `Serial.send`/`send_line`,
+  `UdsClient.send`/`send_line`, and `send_to` on `TcpServer`, `UdsServer`, and
+  `UdpServer`. Under the default `Reliable` backpressure strategy these calls
+  block until send-queue pressure is relieved; holding the GIL across that wait
+  froze every other Python thread, so the interpreter could not drain the queue
+  or call `stop()` to recover. `TcpClient` and `UdpClient` already released the
+  GIL and are unaffected.
+
+### Changed
+
+- `broadcast` on `TcpServer`, `UdsServer`, and `UdpServer` also releases the GIL
+  around the fan-out. Unlike the paths above this is not a deadlock fix: the
+  core delegates `broadcast` to `try_broadcast` even in `Reliable` mode, so it
+  never waits on backpressure.
 
 ## v0.9.5
 
