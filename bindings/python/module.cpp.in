@@ -370,12 +370,16 @@ PYBIND11_MODULE(_core, m) {
       .def("broadcast",
            [](TcpServer& self, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.broadcast(std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.broadcast(data);
            })
       .def("send_to",
            [](TcpServer& self, ClientId client_id, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.send_to(client_id, std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.send_to(client_id, data);
            })
       .def("client_count", &TcpServer::client_count)
       .def("connected_clients", &TcpServer::connected_clients)
@@ -515,9 +519,15 @@ PYBIND11_MODULE(_core, m) {
       .def("send",
            [](Serial& self, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.send(std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.send(data);
            })
-      .def("send_line", &Serial::send_line)
+      .def("send_line",
+           [](Serial& self, std::string_view line) {
+             py::gil_scoped_release release;
+             return self.send_line(line);
+           })
       .def("connected", &Serial::connected)
       .def("stats",
            [](Serial& self) {
@@ -640,9 +650,15 @@ PYBIND11_MODULE(_core, m) {
       .def("send",
            [](UdsClient& self, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.send(std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.send(data);
            })
-      .def("send_line", &UdsClient::send_line)
+      .def("send_line",
+           [](UdsClient& self, std::string_view line) {
+             py::gil_scoped_release release;
+             return self.send_line(line);
+           })
       .def("connected", &UdsClient::connected)
       .def("stats",
            [](UdsClient& self) {
@@ -762,12 +778,16 @@ PYBIND11_MODULE(_core, m) {
       .def("broadcast",
            [](UdsServer& self, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.broadcast(std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.broadcast(data);
            })
       .def("send_to",
            [](UdsServer& self, ClientId client_id, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.send_to(client_id, std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.send_to(client_id, data);
            })
       .def("client_count", &UdsServer::client_count)
       .def("connected_clients", &UdsServer::connected_clients)
@@ -1027,12 +1047,16 @@ PYBIND11_MODULE(_core, m) {
       .def("broadcast",
            [](UdpServer& self, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.broadcast(std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.broadcast(data);
            })
       .def("send_to",
            [](UdpServer& self, ClientId client_id, py::buffer b) {
              py::buffer_info info = b.request();
-             return self.send_to(client_id, std::string_view(static_cast<const char*>(info.ptr), info.size));
+             std::string_view data(static_cast<const char*>(info.ptr), info.size);
+             py::gil_scoped_release release;
+             return self.send_to(client_id, data);
            })
       .def("client_count", &UdpServer::client_count)
       .def("connected_clients", &UdpServer::connected_clients)

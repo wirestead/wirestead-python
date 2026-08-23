@@ -2,6 +2,22 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Added
+
+- Added integration coverage asserting that blocking send paths release the GIL,
+  covering the TCP/UDS client and server transports.
+
+### Fixed
+
+- Released the GIL around blocking send paths on `Serial`, `UdsClient`,
+  `TcpServer`, `UdsServer`, and `UdpServer`. Under the default `Reliable`
+  backpressure strategy these calls block until send-queue pressure is relieved;
+  holding the GIL across that wait froze every other Python thread, so the
+  interpreter could not drain the queue or call `stop()` to recover. `TcpClient`
+  and `UdpClient` already released the GIL and are unaffected.
+
 ## v0.9.5
 
 Released against Wirestead C++ core v0.9.5.
