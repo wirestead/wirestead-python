@@ -602,4 +602,4 @@ Stopped: ErrorCode  # value = <ErrorCode.Stopped: 13>
 Success: ErrorCode  # value = <ErrorCode.Success: 0>
 TimedOut: ErrorCode  # value = <ErrorCode.TimedOut: 8>
 Unknown: ErrorCode  # value = <ErrorCode.Unknown: 1>
-__version__: str = '0.9.5'
+__version__: str = '0.9.6'
