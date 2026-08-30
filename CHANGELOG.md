@@ -2,7 +2,7 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## 0.9.6 - 2026-08-30
 
 ### Added
 
@@ -19,8 +19,8 @@ All notable changes to Wirestead Python are documented in this file.
   Known gap: the stub declares `backpressure_threshold` and
   `backpressure_strategy` as readable, because pybind11 sees a property with a
   getter. Reading either still raises `AttributeError` at runtime, so a type
-  checker will not flag a read that fails. Fixing this needs getters on the C++
-  core, which has setters only.
+  checker will not flag a read that fails. Core v0.9.6 adds those getters, so the
+  binding can expose real properties; that change is not in this release.
 
 - Added integration coverage asserting that blocking send paths release the GIL,
   covering `TcpServer.send_to`, `UdsServer.send_to`, and `UdsClient.send_line`.
