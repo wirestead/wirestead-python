@@ -8,15 +8,36 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "wirestead"
 dynamic = ["version"]
-description = "Cross-platform Python bindings for the Wirestead async C++ communication library"
+description = "Async serial, TCP, UDP and Unix socket communication for Python, backed by a C++20 core"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [
   { name = "Jinwoo Sung" },
 ]
+keywords = [
+  "serial",
+  "serial-port",
+  "rs485",
+  "tcp",
+  "udp",
+  "unix-socket",
+  "socket",
+  "async",
+  "asyncio",
+  "communication",
+  "networking",
+  "cross-platform",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Framework :: AsyncIO",
+  "Topic :: Communications",
+  "Topic :: System :: Networking",
+  "Topic :: Terminals :: Serial",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
