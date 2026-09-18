@@ -45,9 +45,10 @@ stability is not guaranteed across incompatible core versions before v1.0.
 
 ## Dependency policy
 
-Wheel builds use pybind11 2.x, with 2.13 or newer required for the current
+Wheel builds use pybind11 3.x, with 3.1.0 or newer required for the current
 Python matrix. Keep CI, release, and local verification build dependency
-ranges aligned with `pyproject.toml`.
+ranges aligned with `pyproject.toml`; they drifted once, and the untested half
+of the range only surfaced when a dependency bump tried to use it.
 
 ## UDS support
 

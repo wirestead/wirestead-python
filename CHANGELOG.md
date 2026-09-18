@@ -2,6 +2,31 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Build against pybind11 3.x. `pyproject.toml` had allowed `>=2.13,<4` since the
+  bindings landed, but all four CI and release install lines pinned
+  `>=2.13,<3`, so the 3.x half of the declared range was never built or tested
+  and a Dependabot bump to `>=3.1.0` failed the sdist job with
+  `Unmet dependencies: wanted <4,>=3.1.0, found 2.13.6`. Both now say
+  `>=3.1.0,<4`, which is one tested range instead of a tested one and an
+  aspirational one.
+
+  Verified locally against pybind11 3.1.0: the wheel builds and the full suite
+  passes 24/24 with `WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1`, including the
+  GIL-release and real-loopback tests. The binding uses no API that 3.x removed.
+
+  Source builds now need pybind11 3.1.0 or newer. Wheels are unaffected.
+
+- Regenerated `src/wirestead/_core.pyi` under pybind11 3.1.0. 3.x annotates
+  enum `__eq__`/`__ne__` as overloads and widens integer parameters to
+  `typing.SupportsInt | typing.SupportsIndex`, and the stub no longer imports
+  `typing_extensions`. Nothing about the runtime API changed; without
+  regenerating, CI's "Check type stubs are up to date" step would fail on the
+  version bump alone.
+
 ## 0.9.6 - 2026-08-30
 
 ### Added
