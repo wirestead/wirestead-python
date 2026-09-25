@@ -27,7 +27,8 @@ def reserve_udp_port():
 
 
 @pytest.mark.integration
-def test_udp_loopback_smoke():
+@pytest.mark.parametrize("method", ["send", "send_line"])
+def test_udp_loopback_smoke(method):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
             "set WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 to enable real transport loopback tests"
@@ -38,6 +39,8 @@ def test_udp_loopback_smoke():
     port = reserve_udp_port()
     got_data = threading.Event()
     received = []
+    replies = []
+    got_reply = threading.Event()
 
     server_cfg = wirestead.UdpConfig()
     server_cfg.bind_address = "127.0.0.1"
@@ -54,6 +57,7 @@ def test_udp_loopback_smoke():
 
     try:
         server.on_data(lambda ctx: (received.append(bytes(ctx.data)), got_data.set()))
+        client.on_data(lambda ctx: (replies.append(bytes(ctx.data)), got_reply.set()))
 
         assert server.start_sync() is True
         assert wait_until(server.listening)
@@ -61,9 +65,17 @@ def test_udp_loopback_smoke():
         assert client.start_sync() is True
         assert wait_until(client.connected)
 
-        assert client.send(b"hello udp")
+        payload = "hello udp" if method == "send_line" else b"hello udp"
+        assert getattr(client, method)(payload) is True
         assert got_data.wait(5.0)
-        assert received == [b"hello udp"]
+        assert received == [b"hello udp\n" if method == "send_line" else b"hello udp"]
+        assert server.send_to(server.connected_clients()[0], b"targeted") is True
+        assert got_reply.wait(5.0)
+        assert replies == [b"targeted"]
+        got_reply.clear()
+        assert server.broadcast(b"broadcast") is True
+        assert got_reply.wait(5.0)
+        assert replies == [b"targeted", b"broadcast"]
     finally:
         client.stop()
         server.stop()

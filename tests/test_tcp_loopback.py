@@ -46,8 +46,11 @@ def test_tcp_server_loopback_smoke():
         with socket.create_connection(("127.0.0.1", port), timeout=3.0) as peer:
             peer.settimeout(3.0)
             assert wait_until(lambda: server.client_count() == 1)
-            assert server.broadcast(b"hello\n")
+            assert server.broadcast(b"hello\n") is True
             assert peer.recv(1024) == b"hello\n"
+            client_id = server.connected_clients()[0]
+            assert server.send_to(client_id, b"targeted\n") is True
+            assert peer.recv(1024) == b"targeted\n"
     finally:
         server.stop()
 
@@ -76,7 +79,7 @@ def test_tcp_server_runtime_stats_track_traffic():
 
             assert server.stats().bytes_accepted == 0
 
-            assert server.broadcast(payload)
+            assert server.broadcast(payload) is True
             assert peer.recv(1024) == payload
             peer.sendall(payload)
             assert wait_until(lambda: server.stats().bytes_received >= len(payload))
@@ -97,7 +100,8 @@ def test_tcp_server_runtime_stats_track_traffic():
 
 
 @pytest.mark.integration
-def test_tcp_client_loopback_smoke():
+@pytest.mark.parametrize("method", ["send", "send_line", "send_blocking"])
+def test_tcp_client_loopback_smoke(method):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
             "set WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 to enable real transport loopback tests"
@@ -135,7 +139,7 @@ def test_tcp_client_loopback_smoke():
     try:
         assert client.start() is True
         assert wait_until(client.connected)
-        assert client.send_line("hello")
+        assert getattr(client, method)("hello" if method == "send_line" else b"hello\n") is True
         assert wait_until(lambda: bool(received) or bool(errors))
         assert not errors
         assert received == [b"hello\n"]
