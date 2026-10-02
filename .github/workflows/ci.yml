@@ -47,7 +47,7 @@ jobs:
           CORE_API: ${{ matrix.core-api }}
         run: |
           if [[ "$CORE_API" == "structured" ]]; then
-            echo "ref=638d6a4277832cfa0e965da73abad56fedd7e6dd" >> "$GITHUB_OUTPUT"
+            echo "ref=a5d960a3fb675ec00cbeb71f3f6b3dfc58c8a0c9" >> "$GITHUB_OUTPUT"
           else
             echo "ref=$(cat WIRESTEAD_CORE_REF)" >> "$GITHUB_OUTPUT"
           fi
