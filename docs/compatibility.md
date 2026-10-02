@@ -7,6 +7,7 @@ C++ core library.
 
 | Wirestead Python | Supported Wirestead core |
 |---|---|
+| 0.10.x | 0.10.x |
 | 0.9.x | 0.9.x |
 
 ## Validated core versions
@@ -15,6 +16,7 @@ The current release line is validated against:
 
 | Wirestead Python | Validated Wirestead core refs |
 |---|---|
+| 0.10.0 | v0.10.0 |
 | 0.9.6 | v0.9.6 |
 | 0.9.5 | v0.9.5 |
 | 0.9.4 | v0.9.4 |
