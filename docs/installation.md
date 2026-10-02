@@ -77,3 +77,18 @@ scripts/verify.sh --core-source ../wirestead
 Set `VCPKG_ROOT` to run vcpkg validation, or pass `--skip-vcpkg`. Add
 `--installed-prefix /path/to/wirestead/install` to validate against an installed
 core package.
+
+
+## Core send-result compatibility
+
+The package binds core v0.10.0 (WIRESTEAD_CORE_REF), whose send and broadcast
+methods return structured SendResult/FanoutResult values.
+
+Python send, send_line, send_blocking and send_to still return actual bool
+values: True means local queue admission, not delivery. Broadcast returns True
+when at least one target accepted, including partial acceptance; False includes
+both no targets and all targets rejecting. Python does not expose rejection
+reasons or fanout counts in this compatibility change.
+
+The asyncio facade and committed type stubs keep their existing bool contract.
+Rich Python result objects and a release core-pin upgrade are separate changes.

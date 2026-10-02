@@ -2,9 +2,28 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## 0.10.0 - 2026-10-02
 
 ### Changed
+
+- Bind to core v0.10.0. Python sends still return `bool`; see the entries
+  below for what core v0.10 changes underneath. Supported core line is now
+  0.10.x. The separate structured-core CI cells are gone, since the release
+  core is that API.
+
+- With core v0.10, invalid settings raise `ValueError` instead of being clamped:
+  a `backpressure_threshold` outside 1 KiB-100 MiB, and a `Serial` device name
+  that is neither `/dev/...` nor `COMn`, which is now checked at construction
+  rather than at `start()`. Two tests relied on the old clamping and now use
+  values valid under both core generations. The structured-core CI check moves
+  to core a5d960a3f.
+
+- Preserve Python bool send/broadcast results when building against core's
+  structured SendResult and FanoutResult APIs. Explicit conversion supports
+  both the pinned v0.9.6 core and post-D3 core without exposing unregistered
+  C++ result types. Broadcast remains true when any target accepts.
+- Test both core API generations on Linux, macOS and Windows; align the local
+  verification script's pybind11 range with the declared 3.x build requirement.
 
 - Build against pybind11 3.x. `pyproject.toml` had allowed `>=2.13,<4` since the
   bindings landed, but all four CI and release install lines pinned

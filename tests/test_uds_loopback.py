@@ -29,7 +29,8 @@ pytestmark = pytest.mark.integration
     not supports_uds_loopback(),
     reason="Python does not expose AF_UNIX on this platform",
 )
-def test_uds_client_server_loopback(uds_socket_path):
+@pytest.mark.parametrize("method", ["send", "send_line"])
+def test_uds_client_server_loopback(uds_socket_path, method):
     if not RUN_LOOPBACK_TESTS:
         pytest.skip(
             "set WIRESTEAD_PYTHON_RUN_LOOPBACK_TESTS=1 to enable real transport loopback tests"
@@ -38,6 +39,8 @@ def test_uds_client_server_loopback(uds_socket_path):
     socket_path = uds_socket_path
 
     received = []
+    replies = []
+    got_reply = threading.Event()
     connected = threading.Event()
     got_data = threading.Event()
 
@@ -47,15 +50,24 @@ def test_uds_client_server_loopback(uds_socket_path):
     server.on_data(lambda ctx: (received.append(bytes(ctx.data)), got_data.set()))
 
     client = wirestead.UdsClient(socket_path)
+    client.on_data(lambda ctx: (replies.append(bytes(ctx.data)), got_reply.set()))
     try:
         assert server.start_sync()
         assert client.start_sync()
 
         assert connected.wait(2.0)
 
-        assert client.send(b"hello")
+        payload = "hello" if method == "send_line" else b"hello"
+        assert getattr(client, method)(payload) is True
         assert got_data.wait(2.0)
-        assert received == [b"hello"]
+        assert received == [b"hello\n" if method == "send_line" else b"hello"]
+        assert server.send_to(server.connected_clients()[0], b"targeted") is True
+        assert got_reply.wait(2.0)
+        assert replies == [b"targeted"]
+        got_reply.clear()
+        assert server.broadcast(b"broadcast") is True
+        assert got_reply.wait(2.0)
+        assert replies == [b"targeted", b"broadcast"]
     finally:
         client.stop()
         server.stop()
@@ -89,7 +101,7 @@ def test_uds_line_framer_jsonl(uds_socket_path):
 
         assert wait_until(lambda: client.connected())
 
-        assert client.send(b'{"type":"metadata"}\n')
+        assert client.send(b'{"type":"metadata"}\n') is True
         assert got_message.wait(2.0)
 
         assert messages == ['{"type":"metadata"}']
