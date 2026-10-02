@@ -26,8 +26,9 @@ def make_transport(name, path):
         "UdpServer": lambda: wirestead.UdpServer(0),
         "UdsClient": lambda: wirestead.UdsClient(path),
         "UdsServer": lambda: wirestead.UdsServer(path),
-        # No device is opened: this test deliberately never starts the wrapper.
-        "Serial": lambda: wirestead.Serial(path, 9600),
+        # Core validates the device name at construction, so it must look like a
+        # real device. The wrapper is never started, so nothing is opened.
+        "Serial": lambda: wirestead.Serial("/dev/ttyS0", 9600),
     }
     return factories[name]()
 
