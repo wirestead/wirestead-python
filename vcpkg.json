@@ -1,6 +1,6 @@
 {
   "name": "wirestead-python",
-  "version-string": "0.9.6",
+  "version-string": "0.10.0",
   "dependencies": [
     "wirestead"
   ]

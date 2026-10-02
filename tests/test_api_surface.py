@@ -124,7 +124,7 @@ def test_backpressure_properties_are_write_only():
 
     client = wirestead.TcpClient("127.0.0.1", 65535)
 
-    client.backpressure_threshold = 32
+    client.backpressure_threshold = 1024
     client.backpressure_strategy = wirestead.BackpressureStrategy.BestEffort
 
     with pytest.raises(AttributeError):

@@ -7,6 +7,7 @@ C++ core library.
 
 | Wirestead Python | Supported Wirestead core |
 |---|---|
+| 0.10.x | 0.10.x |
 | 0.9.x | 0.9.x |
 
 ## Validated core versions
@@ -15,6 +16,7 @@ The current release line is validated against:
 
 | Wirestead Python | Validated Wirestead core refs |
 |---|---|
+| 0.10.0 | v0.10.0 |
 | 0.9.6 | v0.9.6 |
 | 0.9.5 | v0.9.5 |
 | 0.9.4 | v0.9.4 |
@@ -45,9 +47,10 @@ stability is not guaranteed across incompatible core versions before v1.0.
 
 ## Dependency policy
 
-Wheel builds use pybind11 2.x, with 2.13 or newer required for the current
+Wheel builds use pybind11 3.x, with 3.1.0 or newer required for the current
 Python matrix. Keep CI, release, and local verification build dependency
-ranges aligned with `pyproject.toml`.
+ranges aligned with `pyproject.toml`; they drifted once, and the untested half
+of the range only surfaced when a dependency bump tried to use it.
 
 ## UDS support
 
