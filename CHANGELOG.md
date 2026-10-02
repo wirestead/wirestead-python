@@ -2,9 +2,14 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## 0.10.0 - 2026-10-02
 
 ### Changed
+
+- Bind to core v0.10.0. Python sends still return `bool`; see the entries
+  below for what core v0.10 changes underneath. Supported core line is now
+  0.10.x. The separate structured-core CI cells are gone, since the release
+  core is that API.
 
 - With core v0.10, invalid settings raise `ValueError` instead of being clamped:
   a `backpressure_threshold` outside 1 KiB-100 MiB, and a `Serial` device name

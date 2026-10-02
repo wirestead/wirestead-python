@@ -81,10 +81,8 @@ core package.
 
 ## Core send-result compatibility
 
-The package's release core pin remains in WIRESTEAD_CORE_REF (currently
-v0.9.6). Source builds also support the structured SendResult/FanoutResult
-API introduced for core v0.10; CI checks core commit
-a5d960a3fb675ec00cbeb71f3f6b3dfc58c8a0c9 on Linux, macOS and Windows.
+The package binds core v0.10.0 (WIRESTEAD_CORE_REF), whose send and broadcast
+methods return structured SendResult/FanoutResult values.
 
 Python send, send_line, send_blocking and send_to still return actual bool
 values: True means local queue admission, not delivery. Broadcast returns True

@@ -17,19 +17,6 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-15, windows-2022]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        core-api: [release]
-        include:
-          # Fixed post-D3 core commit: SendResult and FanoutResult public APIs.
-          # Keep the release matrix and packaging pin on WIRESTEAD_CORE_REF.
-          - os: ubuntu-24.04
-            python-version: "3.12"
-            core-api: structured
-          - os: macos-15
-            python-version: "3.12"
-            core-api: structured
-          - os: windows-2022
-            python-version: "3.12"
-            core-api: structured
 
     runs-on: ${{ matrix.os }}
 
@@ -43,14 +30,7 @@ jobs:
       - name: Read Wirestead core ref
         id: core-ref
         shell: bash
-        env:
-          CORE_API: ${{ matrix.core-api }}
-        run: |
-          if [[ "$CORE_API" == "structured" ]]; then
-            echo "ref=a5d960a3fb675ec00cbeb71f3f6b3dfc58c8a0c9" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=$(cat WIRESTEAD_CORE_REF)" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "ref=$(cat WIRESTEAD_CORE_REF)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout Wirestead core
         uses: actions/checkout@v7
