@@ -29,6 +29,40 @@ compatible with the same core minor release line.
 8. Optionally publish to PyPI following [Publishing to PyPI](#publishing-to-pypi)
    below, starting with `testpypi`.
 
+## Python and Ubuntu release gates
+
+Follow the [Python and Ubuntu support policy](compatibility.md). The current
+build matrix targets standard CPython 3.10–3.14, retaining `requires-python
+>=3.10`. Python floor and Linux binary baseline increases require at least six
+months' notice and a minor or major release, never a patch release.
+
+Both GitHub asset publishing and PyPI publishing depend on
+`ubuntu-wheel-smoke`. It installs the actual manylinux release wheels in Ubuntu
+20.04, 22.04, 24.04, and 26.04 userspaces on native x86_64 and aarch64 runners.
+The first uses uv-managed Python 3.12; the others use their distribution's
+default Python. The Dockerfile asserts the expected Python version and uses
+the existing clean-venv consumer smoke runner for TCP, UDP, and UDS.
+
+To reproduce one cell on a machine with Docker, put the matching architecture's
+release wheels in `wheel-artifacts/`, then run from the repository root:
+
+```bash
+docker build --build-arg UBUNTU_VERSION=20.04 \
+  -f scripts/ubuntu-consumer.Dockerfile -t wirestead-ubuntu-consumer .
+docker run --rm -v "$PWD:/project:ro" wirestead-ubuntu-consumer
+```
+
+The consumer image pins uv to 0.13.0; review that pin when updating its managed
+Python patch versions. Ubuntu package updates are intentionally resolved at
+build time. The image needs no C++ compiler or core checkout.
+
+Before announcing 3.14 or the Ubuntu combinations as validated, complete a
+manual Release workflow run with `upload=false` and `publish_pypi=false`.
+Record the successful run and update the pending status in the compatibility
+and installation documents. Update README's published-wheel range only when
+those artifacts are actually published. Container results cover userspace,
+not native-kernel or physical serial-device certification.
+
 ## Local Verification
 
 ```bash
