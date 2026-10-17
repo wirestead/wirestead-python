@@ -2,6 +2,21 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## Unreleased
+
+### Added
+
+- CPython 3.14 build, CI, and installed-wheel smoke targets on all wheel platforms.
+- Release-blocking Ubuntu 20.04/managed Python 3.12, 22.04/default 3.10,
+  24.04/default 3.12, and 26.04/default 3.14 wheel checks on x86_64 and aarch64.
+  These combinations remain pending until the release workflow passes.
+
+### Changed
+
+- Document the Ubuntu LTS and Python lifecycle policy: retain the Python 3.10
+  floor, do not restore 3.8/3.9, and require six months' notice plus a minor or
+  major release for support removals. Keep the manylinux_2_28 baseline.
+
 ## 0.10.0 - 2026-10-02
 
 ### Changed

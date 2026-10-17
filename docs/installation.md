@@ -6,6 +6,10 @@ Prebuilt wheels are published for Python 3.10 through 3.13 on Linux
 (`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
 No C++ toolchain or Wirestead core checkout is required.
 
+The next release adds CPython 3.14 to the wheel build matrix, subject to passing
+release validation. See the [support policy](compatibility.md) for the Ubuntu
+20.04–26.04 validation targets and their current status.
+
 ```bash
 pip install wirestead
 ```
@@ -19,6 +23,32 @@ is recorded in `WIRESTEAD_CORE_REF`.
 
 The methods below build the extension locally and are meant for contributors,
 other Python versions/platforms, or consuming a custom core build.
+
+## Ubuntu interpreter selection
+
+Use a virtual environment with the default Python on Ubuntu 22.04 (3.10),
+24.04 (3.12), or 26.04 (3.14). The 26.04 path requires a release with a 3.14 wheel:
+
+```bash
+sudo apt-get install python3-venv
+python3 -m venv .venv
+.venv/bin/python -m pip install --only-binary=:all: wirestead
+```
+
+Ubuntu 20.04's default Python 3.8 is unsupported. The compatibility target uses
+a separate CPython 3.12 installed by [uv](https://docs.astral.sh/uv/getting-started/installation/).
+With uv installed, use:
+
+```bash
+uv python install 3.12
+uv venv --python 3.12 --managed-python --seed .venv
+.venv/bin/python -m pip install --only-binary=:all: wirestead
+```
+
+This leaves `/usr/bin/python3` unchanged. A virtual environment alone does not
+upgrade Python: the separate interpreter must be installed first. The
+`--only-binary` option makes a missing compatible wheel an explicit error.
+This path remains a validation target until the Ubuntu release checks pass.
 
 ## Development install with local core source
 
