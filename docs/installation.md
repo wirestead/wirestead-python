@@ -6,9 +6,9 @@ Prebuilt wheels are published for Python 3.10 through 3.13 on Linux
 (`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
 No C++ toolchain or Wirestead core checkout is required.
 
-The next release adds CPython 3.14 to the wheel build matrix, subject to passing
-release validation. See the [support policy](compatibility.md) for the Ubuntu
-20.04–26.04 validation targets and their current status.
+The next release adds CPython 3.14 wheels, which have passed release validation
+but are not yet published. See the [support policy](compatibility.md) for the
+validated Ubuntu 20.04–26.04 targets.
 
 ```bash
 pip install wirestead
@@ -48,7 +48,7 @@ uv venv --python 3.12 --managed-python --seed .venv
 This leaves `/usr/bin/python3` unchanged. A virtual environment alone does not
 upgrade Python: the separate interpreter must be installed first. The
 `--only-binary` option makes a missing compatible wheel an explicit error.
-This path remains a validation target until the Ubuntu release checks pass.
+The Ubuntu release checks validate this path on x86_64 and aarch64.
 
 ## Development install with local core source
 
