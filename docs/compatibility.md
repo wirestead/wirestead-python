@@ -3,9 +3,11 @@
 ## Python and Ubuntu support policy
 
 The Python floor remains `>=3.10`. Python 3.8 and 3.9 are not supported.
-The next release targets standard (GIL-enabled) CPython 3.10 through 3.14;
-3.14 support is pending successful CI and release-wheel validation. PyPy and
-free-threaded CPython are separate targets and are not currently supported.
+The next release targets standard (GIL-enabled) CPython 3.10 through 3.14.
+3.14 passed CI and release-wheel validation on 2026-10-20
+([Release run 39335390480](https://github.com/wirestead/wirestead-python/actions/runs/39335390480));
+its wheels are not yet published. PyPy and free-threaded CPython are separate
+targets and are not currently supported.
 
 New upstream-supported CPython versions become supported only after build,
 test, and installed-wheel checks pass. Already-supported Ubuntu LTS default
@@ -24,9 +26,12 @@ the same `manylinux_2_28` release wheels:
 | 24.04 | Default 3.12 | Primary development and validation environment | May 2029 |
 | 26.04 | Default 3.14 | New LTS default-interpreter target | May 2031 |
 
-These Ubuntu combinations are **pending their first successful release workflow
-run**. Adding a CI job is not evidence of a passing test. Both publishing jobs
-require the Ubuntu wheel checks. Container checks validate userspace installation
+All eight Ubuntu/architecture combinations passed the Release workflow
+validation of 2026-10-20
+([run 39335390480](https://github.com/wirestead/wirestead-python/actions/runs/39335390480);
+`upload=false`, `publish_pypi=false`, vcpkg baseline `664933b8d385`). Each later
+release must pass them again: both publishing jobs require the Ubuntu wheel
+checks. Container checks validate userspace installation
 and TCP, UDP, and UDS loopback; they do not certify each distribution's kernel or
 physical serial hardware. Additional Python/Ubuntu combinations are not implied
 by the table. Ubuntu 20.04 is a compatibility exception, reviewed at each minor

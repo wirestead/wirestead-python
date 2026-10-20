@@ -9,7 +9,7 @@ All notable changes to Wirestead Python are documented in this file.
 - CPython 3.14 build, CI, and installed-wheel smoke targets on all wheel platforms.
 - Release-blocking Ubuntu 20.04/managed Python 3.12, 22.04/default 3.10,
   24.04/default 3.12, and 26.04/default 3.14 wheel checks on x86_64 and aarch64.
-  These combinations remain pending until the release workflow passes.
+  All combinations passed Release workflow validation on 2026-10-20.
 
 ### Changed
 
