@@ -2,13 +2,12 @@
 
 ## PyPI (recommended)
 
-Prebuilt wheels are published for Python 3.10 through 3.13 on Linux
+Prebuilt wheels are published for Python 3.10 through 3.14 on Linux
 (`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
 No C++ toolchain or Wirestead core checkout is required.
 
-The next release adds CPython 3.14 wheels, which have passed release validation
-but are not yet published. See the [support policy](compatibility.md) for the
-validated Ubuntu 20.04–26.04 targets.
+CPython 3.14 wheels are published from 0.10.1. See the
+[support policy](compatibility.md) for the validated Ubuntu 20.04–26.04 targets.
 
 ```bash
 pip install wirestead
@@ -27,7 +26,8 @@ other Python versions/platforms, or consuming a custom core build.
 ## Ubuntu interpreter selection
 
 Use a virtual environment with the default Python on Ubuntu 22.04 (3.10),
-24.04 (3.12), or 26.04 (3.14). The 26.04 path requires a release with a 3.14 wheel:
+24.04 (3.12), or 26.04 (3.14). The 26.04 path needs 0.10.1 or later, the first
+release with a 3.14 wheel:
 
 ```bash
 sudo apt-get install python3-venv
