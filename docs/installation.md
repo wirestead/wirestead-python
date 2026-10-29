@@ -111,7 +111,7 @@ core package.
 
 ## Core send-result compatibility
 
-The package binds core v0.10.0 (WIRESTEAD_CORE_REF), whose send and broadcast
+The package binds core v0.10.1 (WIRESTEAD_CORE_REF), whose send and broadcast
 methods return structured SendResult/FanoutResult values.
 
 Python send, send_line, send_blocking and send_to still return actual bool
