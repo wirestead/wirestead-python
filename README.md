@@ -31,14 +31,13 @@ new transport functionality.
 
 ### PyPI (recommended)
 
-Prebuilt wheels are published for Python 3.10 through 3.13 on Linux
+Prebuilt wheels are published for Python 3.10 through 3.14 on Linux
 (`manylinux_2_28` x86_64 and aarch64), macOS (arm64), and Windows (amd64).
 No C++ toolchain or Wirestead core checkout is required.
 
-The next release targets CPython 3.10–3.14; 3.14 wheels have passed release
-validation but are not yet published. Ubuntu 22.04/3.10, 24.04/3.12, 26.04/3.14,
-and 20.04 with separately installed Python 3.12 are validated Ubuntu wheel
-targets. Python 3.8/3.9 remain unsupported. See the
+3.14 wheels are published from 0.10.1. Ubuntu 22.04/3.10, 24.04/3.12,
+26.04/3.14, and 20.04 with separately installed Python 3.12 are validated Ubuntu
+wheel targets. Python 3.8/3.9 remain unsupported. See the
 [support policy](docs/compatibility.md) and
 [Ubuntu installation steps](docs/installation.md#ubuntu-interpreter-selection).
 
@@ -147,7 +146,7 @@ stable release line.
 
 | Item | Status |
 |---|---|
-| Python wheels | CPython 3.10, 3.11, 3.12, and 3.13 |
+| Python wheels | CPython 3.10, 3.11, 3.12, 3.13, and 3.14 |
 | Linux wheels | `manylinux_2_28` x86_64 and aarch64 |
 | Windows wheels | amd64 |
 | macOS wheels | arm64 |

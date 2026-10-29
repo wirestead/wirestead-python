@@ -3,10 +3,11 @@
 ## Python and Ubuntu support policy
 
 The Python floor remains `>=3.10`. Python 3.8 and 3.9 are not supported.
-The next release targets standard (GIL-enabled) CPython 3.10 through 3.14.
+Supported targets are standard (GIL-enabled) CPython 3.10 through 3.14.
 3.14 passed CI and release-wheel validation on 2026-10-20
 ([Release run 39335390480](https://github.com/wirestead/wirestead-python/actions/runs/39335390480));
-its wheels are not yet published. PyPy and free-threaded CPython are separate
+its wheels are published from 0.10.1
+([Release run 40891272845](https://github.com/wirestead/wirestead-python/actions/runs/40891272845)). PyPy and free-threaded CPython are separate
 targets and are not currently supported.
 
 New upstream-supported CPython versions become supported only after build,
