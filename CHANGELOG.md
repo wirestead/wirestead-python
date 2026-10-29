@@ -2,7 +2,7 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
-## Unreleased
+## 0.10.1 - 2026-10-29
 
 ### Added
 
@@ -12,6 +12,10 @@ All notable changes to Wirestead Python are documented in this file.
   All combinations passed Release workflow validation on 2026-10-20.
 
 ### Changed
+
+- Bind to core v0.10.1, a bug-fix release: it fixes a heap corruption in
+  `TcpClient` when its executor was read while `start()` replaced the socket
+  (wirestead#717), and a segfault at process exit. No Python API changes.
 
 - Document the Ubuntu LTS and Python lifecycle policy: retain the Python 3.10
   floor, do not restore 3.8/3.9, and require six months' notice plus a minor or

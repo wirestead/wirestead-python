@@ -79,6 +79,7 @@ The current release line is validated against:
 
 | Wirestead Python | Validated Wirestead core refs |
 |---|---|
+| 0.10.1 | v0.10.1 |
 | 0.10.0 | v0.10.0 |
 | 0.9.6 | v0.9.6 |
 | 0.9.5 | v0.9.5 |
