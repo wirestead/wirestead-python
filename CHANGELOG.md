@@ -2,6 +2,16 @@
 
 All notable changes to Wirestead Python are documented in this file.
 
+## 0.10.2 - 2026-11-21
+
+### Changed
+
+- Bind to core v0.10.2, a bug-fix release: an enabled idle timeout no longer
+  closes a connection right after data that arrived before the deadline
+  (wirestead#726), `LineFramer` keeps a `max_length` line whose delimiter is
+  split across reads (wirestead#727), and large frames are staged with far
+  fewer reallocations (wirestead#725). No Python API changes.
+
 ## 0.10.1 - 2026-10-29
 
 ### Added
