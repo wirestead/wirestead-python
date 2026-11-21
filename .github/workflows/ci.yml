@@ -353,7 +353,10 @@ jobs:
           -DWIRESTEAD_BUILD_DOCS=OFF
 
       - name: Build Wirestead core
-        run: cmake --build build-wirestead-install --parallel
+        # Bare --parallel means an unbounded `make -j` here, which starts all
+        # ~90 translation units at once and can swap the runner into the
+        # job timeout. Cap it at the core count.
+        run: cmake --build build-wirestead-install --parallel "$(nproc)"
 
       - name: Install Wirestead core
         run: cmake --install build-wirestead-install
