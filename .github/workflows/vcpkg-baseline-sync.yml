@@ -28,6 +28,11 @@ jobs:
     steps:
       - name: Checkout Wirestead Python
         uses: actions/checkout@v7
+        with:
+          # The push below must use GH_TOKEN, not the GITHUB_TOKEN checkout
+          # would persist: a GITHUB_TOKEN push to an already-open PR leaves its
+          # CI runs stuck in action_required, so auto-merge never fires.
+          persist-credentials: false
 
       - name: Resolve the core repository baseline
         id: candidate
@@ -78,13 +83,13 @@ jobs:
           printf '%s\n' "${CANDIDATE}" > VCPKG_BASELINE
           git add VCPKG_BASELINE
           git commit -m "ci: sync the vcpkg baseline to ${short}"
-          git push --force origin "${branch}"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "${branch}"
 
           {
             printf 'Moves `VCPKG_BASELINE` from `%s` to [`%s`](https://github.com/microsoft/vcpkg/commit/%s), matching [wirestead/wirestead](https://github.com/wirestead/wirestead/blob/main/VCPKG_BASELINE).\n\n' \
               "${CURRENT}" "${short}" "${CANDIDATE}"
             printf 'Opened automatically because this repository pin had fallen behind the core repository.\n\n'
-            printf 'CI here does not build arm64-linux, so a green run is not by itself proof this baseline is safe for the manylinux aarch64 release wheels. Confirm the core repository built against this commit.\n\n'
+            printf 'CI here does not build arm64-linux; the core repository auto-merges a baseline only after its Linux ARM64 jobs pass, so this commit has already cleared that. Merges automatically once CI here is green.\n\n'
             if [ "${HAS_PAT}" != "true" ]; then
               printf 'This PR was opened with `GITHUB_TOKEN`, so GitHub will not start workflow runs for it. Close and reopen it, or push any commit, to trigger CI. Configure a `VCPKG_BUMP_TOKEN` secret to have that happen automatically.\n'
             fi
